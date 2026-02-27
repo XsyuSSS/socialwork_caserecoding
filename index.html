@@ -38,6 +38,17 @@
     .case-id { background-color: #ecf0f1; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #2c3e50; font-size: 0.9em; margin-right: 10px;}
     .case-name { font-size: 1em; color: #333; }
     .missing-tag { background-color: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 10px; font-weight: bold;}
+
+    /* 🌟 新增：專屬首頁數字的呼吸燈特效 */
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .loading-blink {
+      animation: pulse 1.5s infinite;
+      color: #e67e22 !important; /* 讀取時變成溫暖的橘色 */
+    }
   </style>
 </head>
 <body>
@@ -111,33 +122,59 @@
     };
 
     window.onload = function() {
-      document.getElementById('activeCases').innerText = "讀取中...";
-      document.getElementById('pendingInterviews').innerText = "讀取中...";
-      document.getElementById('pendingRecords').innerText = "讀取中...";
+      const activeEl = document.getElementById('activeCases');
+      const interviewEl = document.getElementById('pendingInterviews');
+      const recordEl = document.getElementById('pendingRecords');
+
+      // 🌟 網頁一打開，立刻加上閃爍特效，並換成橘色文字
+      activeEl.classList.add('loading-blink');
+      interviewEl.classList.add('loading-blink');
+      recordEl.classList.add('loading-blink');
+      
+      activeEl.innerText = "⏳ 讀取中...";
+      interviewEl.innerText = "⏳ 讀取中...";
+      recordEl.innerText = "⏳ 讀取中...";
 
       fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
+          // 🌟 讀取成功後，立刻移除閃爍特效
+          activeEl.classList.remove('loading-blink');
+          interviewEl.classList.remove('loading-blink');
+          recordEl.classList.remove('loading-blink');
+
           if (data.status === 'success') {
-            document.getElementById('activeCases').innerText = data.activeHouseholds + " 戶 / " + data.activeChildren + " 童";
-            document.getElementById('pendingInterviews').innerText = data.pendingInterviews + " 件";
-            document.getElementById('pendingRecords').innerText = data.pendingRecords + " 筆未寫";
+            // 讓原來的字體顏色回來
+            activeEl.style.color = "#2c3e50"; 
+            interviewEl.style.color = "#e74c3c";
+            recordEl.style.color = "#e74c3c";
+
+            activeEl.innerText = data.activeHouseholds + " 戶 / " + data.activeChildren + " 童";
+            interviewEl.innerText = data.pendingInterviews + " 件";
+            recordEl.innerText = data.pendingRecords + " 筆未寫";
             
-            // 將後端送來的三種名單存起來
             globalLists.active = data.activeList || [];
             globalLists.interview = data.pendingInterviewList || [];
             globalLists.record = data.missingRecordList || [];
           } else {
-            document.getElementById('activeCases').innerText = "讀取失敗";
+            activeEl.innerText = "讀取失敗";
+            interviewEl.innerText = "讀取失敗";
+            recordEl.innerText = "讀取失敗";
           }
         })
         .catch(error => {
           console.error("連線錯誤:", error);
-          document.getElementById('activeCases').innerText = "連線失敗";
+          // 🌟 發生錯誤也移除閃爍特效
+          activeEl.classList.remove('loading-blink');
+          interviewEl.classList.remove('loading-blink');
+          recordEl.classList.remove('loading-blink');
+          
+          activeEl.innerText = "連線失敗";
+          interviewEl.innerText = "連線失敗";
+          recordEl.innerText = "連線失敗";
         });
     };
 
-    // 根據點擊的不同按鈕，決定要畫哪一份名單
     function openModal(listType, titleText) {
       document.getElementById('caseModal').style.display = 'block';
       document.getElementById('modalTitle').innerText = titleText;
@@ -153,7 +190,6 @@
       if (event.target == modal) closeModal();
     }
 
-    // 畫名單的通用函數
     function renderModalContent(listToRender) {
       const modalBody = document.getElementById('modalBody');
       
@@ -179,7 +215,6 @@
         if (list.length === 0) return "";
         let sectionHtml = `<div class="region-title">${title} - ${list.length} 筆</div>`;
         list.forEach(c => {
-          // 如果這筆資料帶有 missing (欠交月份) 的屬性，就幫他加上紅色的欠交標籤
           let missingTag = c.missing ? `<span class="missing-tag">${c.missing}未寫</span>` : "";
           sectionHtml += `<div class="case-item">${missingTag}<span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
         });
