@@ -10,19 +10,16 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
     .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
     
-    /* 狀態看板設計 */
     .dashboard { max-width: 800px; margin: 30px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
     .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; text-align: center; border-top: 4px solid #3498db; }
     .stat-box.warning { border-top-color: #e74c3c; } 
     .stat-title { font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;}
     .stat-number { font-size: 1.5em; color: #2c3e50; font-weight: bold; }
     .stat-detail { font-size: 0.8em; color: #95a5a6; margin-top: 5px; }
-
-    /* 🌟 新增：讓方塊可以點擊的特效 */
+    
     .clickable-box { cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
     .clickable-box:hover { background-color: #f0f7fb; transform: scale(1.02); }
 
-    /* 下方功能卡片設計 */
     .container { max-width: 800px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 20px; }
     .card { background: white; padding: 25px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; transition: transform 0.2s; }
     .card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
@@ -30,16 +27,17 @@
     .card p { font-size: 0.85em; color: #666; }
     .icon { font-size: 35px; margin-bottom: 10px; }
 
-    /* 🌟 新增：彈出視窗 (Modal) 的樣式設計 */
+    /* 彈出視窗樣式 */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
     .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 10px; width: 85%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 75vh; overflow-y: auto; position: relative;}
     .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
     .close-btn:hover { color: #e74c3c; }
-    .region-title { color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 20px; font-size: 1.1em;}
-    .case-item { padding: 10px 5px; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;}
+    .region-title { color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 20px; font-size: 1.1em; font-weight: bold;}
+    .case-item { padding: 10px 5px; border-bottom: 1px dashed #eee; display: flex; align-items: center;}
     .case-item:last-child { border-bottom: none; }
-    .case-id { background-color: #ecf0f1; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #2c3e50; font-size: 0.9em;}
+    .case-id { background-color: #ecf0f1; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #2c3e50; font-size: 0.9em; margin-right: 10px;}
     .case-name { font-size: 1em; color: #333; }
+    .missing-tag { background-color: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 10px; font-weight: bold;}
   </style>
 </head>
 <body>
@@ -50,20 +48,22 @@
   </div>
 
   <div class="dashboard">
-    <div class="stat-box clickable-box" onclick="openModal()">
-      <div class="stat-title">👥 目前服務中 <span style="font-size: 0.8em; color:#3498db;">(👆點擊看名單)</span></div>
+    <div class="stat-box clickable-box" onclick="openModal('active', '👥 目前服務中名單')">
+      <div class="stat-title">👥 目前服務中 <span style="font-size: 0.8em; color:#3498db;">(👆看名單)</span></div>
       <div class="stat-number" id="activeCases">-- 戶 / -- 童</div>
       <div class="stat-detail">已開案且服務中個案</div>
     </div>
-    <div class="stat-box warning">
-      <div class="stat-title">🏡 待完成初訪</div>
+    
+    <div class="stat-box warning clickable-box" onclick="openModal('interview', '🏡 待完成初訪名單')">
+      <div class="stat-title">🏡 待完成初訪 <span style="font-size: 0.8em; color:#e74c3c;">(👆看名單)</span></div>
       <div class="stat-number" style="color: #e74c3c;" id="pendingInterviews">-- 件</div>
       <div class="stat-detail">已接案但尚未寫初訪</div>
     </div>
-    <div class="stat-box warning">
-      <div class="stat-title">📝 當月紀錄狀態</div>
-      <div class="stat-number" style="color: #e74c3c;" id="pendingRecords">-- 戶未寫</div>
-      <div class="stat-detail">本月尚有紀錄未完成</div>
+    
+    <div class="stat-box warning clickable-box" onclick="openModal('record', '📝 紀錄待補交名單 (含本月與上月)')">
+      <div class="stat-title">📝 紀錄待補交 <span style="font-size: 0.8em; color:#e74c3c;">(👆看名單)</span></div>
+      <div class="stat-number" style="color: #e74c3c;" id="pendingRecords">-- 筆未寫</div>
+      <div class="stat-detail">本月或上月尚有紀錄未完成</div>
     </div>
   </div>
 
@@ -93,8 +93,7 @@
   <div id="caseModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeModal()">&times;</span>
-      <h2 style="margin-top:0; color:#2c3e50;">📋 服務中個案明細</h2>
-      <p style="color:#7f8c8d; font-size:0.9em;">(請與您的 Google Sheet 對比此清單)</p>
+      <h2 id="modalTitle" style="margin-top:0; color:#2c3e50; font-size: 1.4em;">📋 名單</h2>
       <div id="modalBody">
         名單載入中...
       </div>
@@ -105,8 +104,11 @@
     // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
 
-    // 🌟 新增：建立一個全域變數，用來暫存後端抓下來的名單
-    let globalCaseList = [];
+    let globalLists = {
+      active: [],
+      interview: [],
+      record: []
+    };
 
     window.onload = function() {
       document.getElementById('activeCases').innerText = "讀取中...";
@@ -119,10 +121,12 @@
           if (data.status === 'success') {
             document.getElementById('activeCases').innerText = data.activeHouseholds + " 戶 / " + data.activeChildren + " 童";
             document.getElementById('pendingInterviews').innerText = data.pendingInterviews + " 件";
-            document.getElementById('pendingRecords').innerText = data.pendingRecords;
+            document.getElementById('pendingRecords').innerText = data.pendingRecords + " 筆未寫";
             
-            // 🌟 收到資料後，把名單存起來備用
-            globalCaseList = data.caseList || [];
+            // 將後端送來的三種名單存起來
+            globalLists.active = data.activeList || [];
+            globalLists.interview = data.pendingInterviewList || [];
+            globalLists.record = data.missingRecordList || [];
           } else {
             document.getElementById('activeCases').innerText = "讀取失敗";
           }
@@ -133,77 +137,58 @@
         });
     };
 
-    // 🌟 新增：打開彈出視窗的函數
-    function openModal() {
+    // 根據點擊的不同按鈕，決定要畫哪一份名單
+    function openModal(listType, titleText) {
       document.getElementById('caseModal').style.display = 'block';
-      renderModalContent(); // 打開時開始畫名單
+      document.getElementById('modalTitle').innerText = titleText;
+      renderModalContent(globalLists[listType]); 
     }
 
-    // 🌟 新增：關閉彈出視窗的函數
     function closeModal() {
       document.getElementById('caseModal').style.display = 'none';
     }
 
-    // 🌟 新增：如果點擊視窗外面的半透明黑底，也自動關閉
     window.onclick = function(event) {
       const modal = document.getElementById('caseModal');
-      if (event.target == modal) {
-        closeModal();
-      }
+      if (event.target == modal) closeModal();
     }
 
-    // 🌟 新增：負責將名單分區 (H、L) 並畫在畫面上的函數
-    function renderModalContent() {
+    // 畫名單的通用函數
+    function renderModalContent(listToRender) {
       const modalBody = document.getElementById('modalBody');
       
-      if (globalCaseList.length === 0) {
-        modalBody.innerHTML = "<p style='color:red;'>目前名單為空，請確認後台審核狀態是否正確標記為「☑通過  □不通過」。</p>";
+      if (listToRender.length === 0) {
+        modalBody.innerHTML = "<p style='color:#27ae60; font-weight:bold; font-size:1.1em; padding:20px; text-align:center;'>🎉 太棒了！這個項目目前全部都已完成！</p>";
         return;
       }
 
-      // 準備三個空陣列來裝不同區域的人
       let houbi = [];
       let liuying = [];
       let others = [];
 
-      // 把人分門別類
-      globalCaseList.forEach(c => {
+      listToRender.forEach(c => {
         const id = c.id ? c.id.toUpperCase().trim() : "";
-        if (id.startsWith('H')) {
-          houbi.push(c);
-        } else if (id.startsWith('L')) {
-          liuying.push(c);
-        } else {
-          others.push(c);
-        }
+        if (id.startsWith('H')) { houbi.push(c); } 
+        else if (id.startsWith('L')) { liuying.push(c); } 
+        else { others.push(c); }
       });
 
-      // 開始組裝要顯示在畫面上的 HTML
       let htmlContent = "";
       
-      // 顯示後壁區
-      if (houbi.length > 0) {
-        htmlContent += `<div class="region-title">📍 後壁區 (H) - ${houbi.length} 戶</div>`;
-        houbi.forEach(c => {
-          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
+      const buildSection = (title, list) => {
+        if (list.length === 0) return "";
+        let sectionHtml = `<div class="region-title">${title} - ${list.length} 筆</div>`;
+        list.forEach(c => {
+          // 如果這筆資料帶有 missing (欠交月份) 的屬性，就幫他加上紅色的欠交標籤
+          let missingTag = c.missing ? `<span class="missing-tag">${c.missing}未寫</span>` : "";
+          sectionHtml += `<div class="case-item">${missingTag}<span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
         });
-      }
-      
-      // 顯示柳營區
-      if (liuying.length > 0) {
-        htmlContent += `<div class="region-title">📍 柳營區 (L) - ${liuying.length} 戶</div>`;
-        liuying.forEach(c => {
-          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
-        });
-      }
+        return sectionHtml;
+      };
 
-      // 顯示其他區域 (以防未來有 N 開頭的)
-      if (others.length > 0) {
-        htmlContent += `<div class="region-title">📍 其他區域 - ${others.length} 戶</div>`;
-        others.forEach(c => {
-          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
-        });
-      }
+      htmlContent += buildSection("🧸 後壁區 (H)", houbi);
+      htmlContent += buildSection("🪆 柳營區 (L)", liuying);
+      htmlContent += buildSection("🎁 其他區域", others);
 
       modalBody.innerHTML = htmlContent;
     }
