@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>社工系統：3. 每月個案紀錄</title>
-  
   <link rel="icon" type="image/jpeg" href="photo.jpg">
-  
   <style>
     body { font-family: sans-serif; padding: 20px; max-width: 650px; margin: auto; background-color: #f4f7f6;}
     h2 { color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 10px; }
@@ -14,18 +12,12 @@
     input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     button { padding: 12px 15px; background-color: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; font-weight: bold;}
     button:hover { background-color: #1c5980; }
+    button:disabled { background-color: #95a5a6; cursor: not-allowed; }
     .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     #statusMsg { margin-top: 20px; font-weight: bold; text-align: center; }
-    
-    /* 頂部導覽列按鈕設計 */
-    .nav-btn { 
-      display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; 
-      background-color: #ecf0f1; color: #2c3e50; text-decoration: none; 
-      border-radius: 5px; font-weight: bold; transition: background-color 0.2s;
-    }
+    .nav-btn { display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
-    .nav-active:hover { background-color: #27ae60; }
   </style>
 </head>
 <body>
@@ -39,11 +31,10 @@
   <form id="recordForm">
     
     <div class="section">
-      <label>案號 (家戶編號):</label>
-      <input type="text" id="householdId" placeholder="後壁H01、柳營L01等等" required>
-      
-      <label>個案姓名:</label>
-      <input type="text" id="caseName" required>
+      <label>選擇服務個案:</label>
+      <select id="caseSelector" required>
+        <option value="">⏳ 名單載入中，請稍候...</option>
+      </select>
       
       <label>訪視/會談日期:</label>
       <input type="date" id="visitDate" required>
@@ -99,7 +90,7 @@
       <textarea id="handlingSummary" rows="3" required></textarea>
     </div>
 
-    <button type="submit">送出紀錄並生成文件</button>
+    <button type="submit" id="submitBtn" disabled>送出紀錄並生成文件</button>
   </form>
 
   <div id="statusMsg"></div>
@@ -108,19 +99,61 @@
     // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
 
+    // 網頁一打開，就去跟後端要名單
+    window.onload = function() {
+      const caseSelector = document.getElementById('caseSelector');
+      const submitBtn = document.getElementById('submitBtn');
+
+      fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+          if(data.status === 'success') {
+            caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
+            
+            // 將後端傳來的名單，一個一個變成下拉選項
+            data.caseList.forEach(c => {
+              const option = document.createElement('option');
+              // 我們把 ID 和姓名用 | 符號綁在一起當作 value，例如 "H-001|王小明"
+              option.value = c.id + "|" + c.name; 
+              option.text = c.id + " - " + c.name;
+              caseSelector.appendChild(option);
+            });
+            
+            // 名單載入完成後，解開送出按鈕的封印
+            submitBtn.disabled = false; 
+          } else {
+            caseSelector.innerHTML = '<option value="">❌ 讀取名單失敗</option>';
+          }
+        })
+        .catch(error => {
+          caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤</option>';
+        });
+    };
+
+    // 表單送出時的動作
     document.getElementById('recordForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const statusDiv = document.getElementById('statusMsg');
-      const submitBtn = document.querySelector('button[type="submit"]');
       
+      const statusDiv = document.getElementById('statusMsg');
+      const submitBtn = document.getElementById('submitBtn');
+      const selectedCase = document.getElementById('caseSelector').value;
+
+      if (!selectedCase) {
+        alert("請先選擇要填寫紀錄的個案！");
+        return;
+      }
+
+      // 把剛剛綁在一起的 ID 和姓名拆開
+      const [householdId, caseName] = selectedCase.split('|');
+
       statusDiv.style.color = "#333";
       statusDiv.innerText = "⏳ 紀錄處理與文件生成中，請稍候...";
       submitBtn.disabled = true;
 
       const formData = {
-        action: "record", // 告訴後端這是每月紀錄動作
-        householdId: document.getElementById('householdId').value,
-        caseName: document.getElementById('caseName').value,
+        action: "record", 
+        householdId: householdId, // 拆解出來的案號
+        caseName: caseName,       // 拆解出來的姓名
         visitDate: document.getElementById('visitDate').value,
         visitMethod: document.getElementById('visitMethod').value,
         visitTarget: document.getElementById('visitTarget').value,
