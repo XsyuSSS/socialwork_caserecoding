@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社工系統：2. 初訪紀錄與評估</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; background-color: #f4f7f6;}
+    h2 { color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 15px; color: #333; }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    input[type="file"] { margin-top: 5px; }
+    button { padding: 12px 15px; background-color: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; font-weight: bold;}
+    button:hover { background-color: #1c5980; }
+    .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    #statusMsg { margin-top: 20px; font-weight: bold; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <h2>🏡 第二步：填寫初訪紀錄</h2>
+  <form id="interviewForm">
+    
+    <div class="section">
+      <label>家戶編號 (請輸入接案時的編號以利連結):</label>
+      <input type="text" id="householdId" placeholder="例如：2026-001" required>
+      
+      <label>主要個案姓名:</label>
+      <input type="text" id="caseName" required>
+      
+      <label>初訪對象 (如：案母、案祖父):</label>
+      <input type="text" id="interviewTarget" required>
+      
+      <label>初訪日期:</label>
+      <input type="date" id="interviewDate" required>
+      
+      <label>居住地址:</label>
+      <input type="text" id="address" required>
+    </div>
+
+    <div class="section">
+      <h3>住屋與環境狀況</h3>
+      <label>住屋所有權:</label>
+      <select id="ownership">
+        <option value="自有">自有</option>
+        <option value="租賃">租賃</option>
+        <option value="借用">借用</option>
+        <option value="寄居">寄居</option>
+        <option value="不詳">不詳</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label>住屋結構:</label>
+      <select id="structure">
+        <option value="平屋">平屋</option>
+        <option value="樓房">樓房</option>
+        <option value="公寓">公寓</option>
+        <option value="鐵皮屋">鐵皮屋</option>
+        <option value="木板屋">木板屋</option>
+        <option value="古厝(含三合院)">古厝(含三合院)</option>
+      </select>
+
+      <label>環境衛生:</label>
+      <select id="sanitation">
+        <option value="整齊">整齊</option>
+        <option value="普通">普通</option>
+        <option value="髒亂">髒亂</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h3>家庭現況與評估</h3>
+      <label>家庭成員概況 (含異動史、居住狀況、互動觀察等):</label>
+      <textarea id="familyStatus" rows="6" placeholder="請輸入家庭現況實地了解與觀察..." required></textarea>
+
+      <label>上傳家系圖 (請上傳 PPT 截圖或圖片檔):</label>
+      <input type="file" id="genogramImage" accept="image/*" required>
+
+      <label>初訪評估 (社工綜合評估):</label>
+      <textarea id="interviewAssessment" rows="4" required></textarea>
+
+      <label>入班審核結果:</label>
+      <select id="auditResult">
+        <option value="☑通過  □不通過">通過</option>
+        <option value="□通過  ☑不通過">不通過</option>
+      </select>
+    </div>
+
+    <button type="submit">生成初訪文件並歸檔</button>
+  </form>
+
+  <div id="statusMsg"></div>
+
+  <script>
+    // 這裡的網址稍後會換成我們 "全新升級版" 的 GAS_URL
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
+
+    document.getElementById('interviewForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusDiv = document.getElementById('statusMsg');
+      const submitBtn = document.querySelector('button[type="submit"]');
+      
+      statusDiv.style.color = "#333";
+      statusDiv.innerText = "⏳ 資料與圖片處理中，請稍候 (約需 10-20 秒)...";
+      submitBtn.disabled = true;
+
+      // 圖片轉 Base64 處理
+      const fileInput = document.getElementById('genogramImage');
+      const file = fileInput.files[0];
+      
+      let base64String = "";
+      let fileName = "";
+      let mimeType = "";
+
+      if (file) {
+        fileName = file.name;
+        mimeType = file.type;
+        base64String = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result.split(',')[1]); // 只取 base64 編碼部分
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // 打包資料
+      const formData = {
+        action: "interview", // 告訴後端這是初訪動作
+        householdId: document.getElementById('householdId').value,
+        caseName: document.getElementById('caseName').value,
+        interviewTarget: document.getElementById('interviewTarget').value,
+        interviewDate: document.getElementById('interviewDate').value,
+        address: document.getElementById('address').value,
+        ownership: document.getElementById('ownership').value,
+        structure: document.getElementById('structure').value,
+        sanitation: document.getElementById('sanitation').value,
+        familyStatus: document.getElementById('familyStatus').value,
+        interviewAssessment: document.getElementById('interviewAssessment').value,
+        auditResult: document.getElementById('auditResult').value,
+        // 圖片資料
+        imageFile: base64String,
+        imageName: document.getElementById('householdId').value + "_家系圖",
+        imageMimeType: mimeType
+      };
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          statusDiv.style.color = "green";
+          statusDiv.innerHTML = "✅ 初訪文件已成功生成並存檔！<br>可以在您的 Google Drive 中查看。";
+          document.getElementById('interviewForm').reset();
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = "❌ 錯誤：" + data.message;
+        }
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "❌ 網路連線錯誤：" + error;
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+      });
+    });
+  </script>
+
+</body>
+</html>
