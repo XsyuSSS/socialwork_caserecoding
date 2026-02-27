@@ -18,6 +18,11 @@
     .nav-btn { display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
+    
+    /* 🌟 新增：複選題的排版設計 */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #fafcfb; }
+    .checkbox-group label { display: flex; align-items: center; margin-top: 0; font-weight: normal; cursor: pointer; color: #444; }
+    .checkbox-group input[type="checkbox"] { width: auto; margin-right: 6px; margin-top: 0; transform: scale(1.2); cursor: pointer;}
   </style>
 </head>
 <body>
@@ -42,31 +47,32 @@
 
     <div class="section">
       <h3>訪視基本資訊</h3>
-      <label>訪視方式:</label>
-      <select id="visitMethod">
-        <option value="家訪">家訪</option>
-        <option value="電訪">電訪</option>
-        <option value="社群軟體">社群軟體</option>
-        <option value="其他">其他</option>
-      </select>
+      
+      <label>訪視方式 (可複選):</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="visitMethod" value="家訪"> 家訪</label>
+        <label><input type="checkbox" name="visitMethod" value="電訪"> 電訪</label>
+        <label><input type="checkbox" name="visitMethod" value="社群軟體"> 社群軟體</label>
+        <label><input type="checkbox" name="visitMethod" value="其他"> 其他</label>
+      </div>
 
-      <label>訪視對象:</label>
-      <select id="visitTarget">
-        <option value="照顧者">照顧者</option>
-        <option value="學生本人">學生本人</option>
-        <option value="鄰居">鄰居</option>
-        <option value="其他">其他</option>
-      </select>
+      <label>訪視對象 (可複選):</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="visitTarget" value="照顧者"> 照顧者</label>
+        <label><input type="checkbox" name="visitTarget" value="學生本人"> 學生本人</label>
+        <label><input type="checkbox" name="visitTarget" value="鄰居"> 鄰居</label>
+        <label><input type="checkbox" name="visitTarget" value="其他"> 其他</label>
+      </div>
 
-      <label>本次特殊議題:</label>
-      <select id="specialIssue">
-        <option value="無">無</option>
-        <option value="經濟困難">經濟困難</option>
-        <option value="兒保">兒保</option>
-        <option value="家暴">家暴</option>
-        <option value="性平事件">性平事件</option>
-        <option value="其它">其它</option>
-      </select>
+      <label>本次特殊議題 (可複選):</label>
+      <div class="checkbox-group">
+        <label><input type="checkbox" name="specialIssue" value="無"> 無</label>
+        <label><input type="checkbox" name="specialIssue" value="經濟困難"> 經濟困難</label>
+        <label><input type="checkbox" name="specialIssue" value="兒保"> 兒保</label>
+        <label><input type="checkbox" name="specialIssue" value="家暴"> 家暴</label>
+        <label><input type="checkbox" name="specialIssue" value="性平事件"> 性平事件</label>
+        <label><input type="checkbox" name="specialIssue" value="其它"> 其它</label>
+      </div>
     </div>
 
     <div class="section">
@@ -78,7 +84,7 @@
       <textarea id="processRecord" rows="6" required></textarea>
 
       <label>處理方式:</label>
-      <select id="handlingMethod">
+      <select id="handlingMethod" required>
         <option value="例行性關懷">例行性關懷</option>
         <option value="提高關懷頻率">提高關懷頻率</option>
         <option value="通報">通報</option>
@@ -96,6 +102,7 @@
   <div id="statusMsg"></div>
 
   <script>
+    // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
 
     // 網頁一打開，就去跟後端要名單
@@ -109,7 +116,6 @@
           if(data.status === 'success') {
             caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
             
-            // 🌟 將 activeList 變成選單
             data.activeList.forEach(c => {
               const option = document.createElement('option');
               option.value = c.id + "|" + c.name; 
@@ -128,6 +134,16 @@
         });
     };
 
+    // 🌟 獲取複選題數值的專用函數 (會自動用「、」把多個選項接起來)
+    function getCheckedValues(checkboxName) {
+      const checkboxes = document.querySelectorAll(`input[name="${checkboxName}"]:checked`);
+      let values = [];
+      checkboxes.forEach((cb) => {
+        values.push(cb.value);
+      });
+      return values.join('、'); 
+    }
+
     // 表單送出時的動作
     document.getElementById('recordForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -141,7 +157,15 @@
         return;
       }
 
-      // 把剛剛綁在一起的 ID 和姓名拆開
+      // 🌟 送出前檢查是否有勾選複選題
+      const finalVisitMethod = getCheckedValues('visitMethod');
+      const finalVisitTarget = getCheckedValues('visitTarget');
+      const finalSpecialIssue = getCheckedValues('specialIssue');
+
+      if (!finalVisitMethod) { alert("請至少勾選一項「訪視方式」！"); return; }
+      if (!finalVisitTarget) { alert("請至少勾選一項「訪視對象」！"); return; }
+      if (!finalSpecialIssue) { alert("請至少勾選一項「本次特殊議題」！(若無請勾選'無')"); return; }
+
       const [householdId, caseName] = selectedCase.split('|');
 
       statusDiv.style.color = "#333";
@@ -153,9 +177,9 @@
         householdId: householdId, 
         caseName: caseName,       
         visitDate: document.getElementById('visitDate').value,
-        visitMethod: document.getElementById('visitMethod').value,
-        visitTarget: document.getElementById('visitTarget').value,
-        specialIssue: document.getElementById('specialIssue').value,
+        visitMethod: finalVisitMethod,     // 帶入串好的字串 (例如：家訪、電訪)
+        visitTarget: finalVisitTarget,     // 帶入串好的字串
+        specialIssue: finalSpecialIssue,   // 帶入串好的字串
         lifeStatus: document.getElementById('lifeStatus').value,
         processRecord: document.getElementById('processRecord').value,
         handlingMethod: document.getElementById('handlingMethod').value,
