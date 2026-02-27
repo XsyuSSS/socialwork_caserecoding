@@ -12,7 +12,6 @@
     input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     input[type="file"] { margin-top: 5px; }
     
-    /* 唯讀欄位(自動帶入)的樣式，讓它看起來像被鎖定的 */
     input[readonly] { background-color: #e9ecef; color: #6c757d; border: 1px dashed #ccc; cursor: not-allowed; }
     
     button { padding: 12px 15px; background-color: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; font-weight: bold;}
@@ -22,12 +21,10 @@
     .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     #statusMsg { margin-top: 20px; font-weight: bold; text-align: center; }
     
-    /* 頂部導覽列按鈕 */
     .nav-btn { display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
     
-    /* 🌟 新增：待辦名單按鈕設計 */
     .pending-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
     .pending-item { background-color: #fff; border-left: 5px solid #e74c3c; padding: 15px 20px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; display: flex; justify-content: space-between; align-items: center;}
     .pending-item:hover { transform: translateX(5px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: #fdfefe; }
@@ -35,9 +32,23 @@
     .pending-name { font-size: 1.1em; color: #2c3e50; font-weight: bold; }
     .go-icon { color: #bdc3c7; font-size: 1.2em; }
     
-    /* 返回重選按鈕 */
     .back-to-list-btn { background-color: #e74c3c; margin-top: 0; margin-bottom: 20px; }
     .back-to-list-btn:hover { background-color: #c0392b; }
+
+    /* 🌟 這是為你寫的「閃爍呼吸燈」特效！ */
+    @keyframes flash {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    .flashing-text {
+      animation: flash 1.5s infinite;
+      color: #e67e22;
+      font-weight: bold;
+      text-align: center;
+      font-size: 1.1em;
+      padding: 15px;
+    }
   </style>
 </head>
 <body>
@@ -52,7 +63,7 @@
   <div id="selectionArea">
     <h3 style="color: #e74c3c;">⚠️ 請選擇要進行初訪的個案：</h3>
     <div id="pendingContainer" class="pending-list">
-      <p>⏳ 名單載入中，請稍候...</p>
+      <p class="flashing-text">⏳ 正在與 Google 雲端連線，讀取名單中...</p>
     </div>
   </div>
 
@@ -135,7 +146,6 @@
     // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
 
-    // 網頁一打開，就去跟後端要「待初訪名單」
     window.onload = function() {
       const pendingContainer = document.getElementById('pendingContainer');
 
@@ -143,18 +153,17 @@
         .then(response => response.json())
         .then(data => {
           if(data.status === 'success') {
-            pendingContainer.innerHTML = ''; // 清空載入中文字
+            pendingContainer.innerHTML = ''; 
             
-            if(data.pendingList.length === 0) {
+            // 🌟 這裡修正了：改為尋找 pendingInterviewList
+            if(data.pendingInterviewList.length === 0) {
               pendingContainer.innerHTML = '<div style="text-align:center; padding: 30px; background:#fff; border-radius:8px; color:#27ae60; font-weight:bold; font-size:1.2em;">🎉 太棒了！目前沒有需要初訪的個案！</div>';
               return;
             }
 
-            // 把後端傳來的名單，畫成一個個漂亮的點擊按鈕
-            data.pendingList.forEach(c => {
+            data.pendingInterviewList.forEach(c => {
               const itemDiv = document.createElement('div');
               itemDiv.className = 'pending-item';
-              // 當點擊這個案子時，觸發打開表單的函數，並把案號和姓名傳過去
               itemDiv.onclick = function() { openForm(c.id, c.name); };
               
               itemDiv.innerHTML = `
@@ -168,15 +177,14 @@
             });
             
           } else {
-            pendingContainer.innerHTML = '<p style="color:red;">❌ 讀取名單失敗</p>';
+            pendingContainer.innerHTML = '<p style="color:red; text-align:center;">❌ 讀取名單失敗</p>';
           }
         })
         .catch(error => {
-          pendingContainer.innerHTML = '<p style="color:red;">❌ 網路連線錯誤</p>';
+          pendingContainer.innerHTML = '<p style="color:red; text-align:center;">❌ 網路連線錯誤</p>';
         });
     };
 
-    // 🌟 點擊名單後：隱藏選單、顯示表單、自動帶入案號姓名
     function openForm(id, name) {
       document.getElementById('selectionArea').style.display = 'none';
       document.getElementById('formArea').style.display = 'block';
@@ -185,7 +193,6 @@
       document.getElementById('caseName').value = name;
     }
 
-    // 🌟 點錯了想重選：隱藏表單、顯示選單、清空資料
     function showSelectionArea() {
       document.getElementById('formArea').style.display = 'none';
       document.getElementById('selectionArea').style.display = 'block';
@@ -193,7 +200,6 @@
       document.getElementById('statusMsg').innerText = '';
     }
 
-    // 表單送出處理
     document.getElementById('interviewForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const statusDiv = document.getElementById('statusMsg');
@@ -248,7 +254,6 @@
         if(data.status === 'success') {
           statusDiv.style.color = "green";
           statusDiv.innerHTML = "✅ 初訪文件已成功生成並存檔！<br>可以點擊上方返回首頁，或重新整理頁面繼續初訪。";
-          // 送出成功後，鎖住表單按鈕，避免重複送出
         } else {
           statusDiv.style.color = "red";
           statusDiv.innerText = "❌ 錯誤：" + data.message;
