@@ -11,10 +11,28 @@
     button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; width: 100%; margin-top: 20px;}
     button:hover { background-color: #45a049; }
     #statusMsg { margin-top: 20px; font-weight: bold; }
+    
+    /* 👇 新增這裡：這是讓返回按鈕變好看的樣式 👇 */
+    .back-btn { 
+      display: inline-block; 
+      margin-bottom: 20px; 
+      padding: 8px 12px; 
+      background-color: #ecf0f1; 
+      color: #2c3e50; 
+      text-decoration: none; 
+      border-radius: 5px; 
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+    .back-btn:hover { 
+      background-color: #bdc3c7; 
+    }
+    /* 👆 新增結束 👆 */
   </style>
 </head>
 <body>
 
+  <a href="index.html" class="back-btn">⬅️ 回到首頁</a>
   <h2>1️⃣第一步：新增接案紀錄</h2>
   <form id="intakeForm">
     <label>家戶/案件編號(後壁H、柳營L):</label>
@@ -43,7 +61,6 @@
   <div id="statusMsg"></div>
 
   <script>
-    // ！！！請將下方引號內的網址替換成你的 Google Apps Script 部署網址！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
 
     document.getElementById('intakeForm').addEventListener('submit', function(e) {
@@ -52,9 +69,8 @@
       statusDiv.style.color = "#333";
       statusDiv.innerText = "資料傳送中，請稍候...";
 
-      // 打包接案資料 (對應後端的欄位)
       const formData = {
-        action: "intake", // 告訴後端這是接案動作
+        action: "intake", 
         householdId: document.getElementById('householdId').value,
         intakeDate: document.getElementById('intakeDate').value,
         caseName: document.getElementById('caseName').value,
