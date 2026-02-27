@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社工系統：3. 家庭資料表</title>
+  <link rel="icon" type="image/jpeg" href="photo.jpg">
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 650px; margin: auto; background-color: #f4f7f6;}
+    h2 { color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 15px; color: #333; }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    input[readonly] { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; }
+    button { padding: 12px 15px; background-color: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; font-weight: bold;}
+    button:hover { background-color: #1c5980; }
+    button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+    .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    #statusMsg { margin-top: 20px; font-weight: bold; text-align: center; }
+    
+    .nav-btn { display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: background-color 0.2s; }
+    .nav-btn:hover { background-color: #bdc3c7; }
+    .nav-active { background-color: #2ecc71; color: white; }
+    
+    .auto-fill-hint { font-size: 0.8em; color: #e67e22; font-weight: normal; margin-left: 5px;}
+    @keyframes selectFlash { 0% { background-color: #fdf2e9; opacity: 1; } 50% { background-color: #fff; opacity: 0.5; } 100% { background-color: #fdf2e9; opacity: 1; } }
+    .loading-select { animation: selectFlash 1.5s infinite; font-weight: bold; color: #e67e22; border-color: #e67e22;}
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="nav-btn">🏠 首頁</a>
+  <a href="intake.html" class="nav-btn">1. 接案</a>
+  <a href="interview.html" class="nav-btn">2. 初訪</a>
+  <a href="family.html" class="nav-btn nav-active">3. 家庭資料</a>
+  <a href="record.html" class="nav-btn">4. 每月紀錄</a>
+
+  <h2>3️⃣第三步：建立/更新家庭資料表</h2>
+  <form id="familyForm">
+    
+    <div class="section">
+      <label>選擇要更新資料的個案:</label>
+      <select id="caseSelector" class="loading-select" required>
+        <option value="">⏳ 正在連線讀取名單與舊資料...</option>
+      </select>
+    </div>
+
+    <div id="formArea" style="display: none;">
+      <div class="section">
+        <h3>基本資料</h3>
+        <label>入班年級 (含年班): <span class="auto-fill-hint">例如：國小三年二班</span></label>
+        <input type="text" id="grade" required>
+
+        <label>出生日期:</label>
+        <input type="date" id="birthDate">
+
+        <label>聯絡地址 (自初訪紀錄帶入，可修改):</label>
+        <input type="text" id="address" required>
+
+        <label>戶籍地址:</label>
+        <input type="text" id="registry">
+      </div>
+
+      <div class="section">
+        <h3>聯絡與照顧狀況</h3>
+        <label>住家電話:</label>
+        <input type="text" id="homePhone">
+
+        <label>手機號碼:</label>
+        <input type="text" id="mobile">
+
+        <label>主要照顧者:</label>
+        <input type="text" id="caregiver">
+
+        <label>方便聯絡時間:</label>
+        <input type="text" id="contactTime">
+
+        <label>身心健康狀態:</label>
+        <input type="text" id="health" placeholder="例如：無特殊議題 / 疑似過動...">
+
+        <label>照顧者婚姻狀況:</label>
+        <input type="text" id="marriage" placeholder="例如：未婚 / 離婚 / 分居...">
+      </div>
+
+      <div class="section">
+        <h3>家庭成員與圖表</h3>
+        <label>家庭成員清單: <span class="auto-fill-hint">建議格式：父-王大明、母-李小美</span></label>
+        <textarea id="members" rows="3"></textarea>
+
+        <label>上傳新版家系圖 (若無異動可不選): <span class="auto-fill-hint">不選則保留舊圖片</span></label>
+        <input type="file" id="genogramImage" accept="image/*">
+      </div>
+
+      <button type="submit" id="submitBtn">儲存資料並覆蓋 Word 檔</button>
+    </div>
+  </form>
+
+  <div id="statusMsg"></div>
+
+  <script>
+    // ！！！記得換成你最新的 GAS_URL ！！！
+    const GAS_URL = '你的_WEB_APP_URL_貼在這裡'; 
+
+    let globalCasesData = {}; 
+
+    window.onload = function() {
+      const caseSelector = document.getElementById('caseSelector');
+      fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+          if(data.status === 'success') {
+            caseSelector.classList.remove('loading-select');
+            caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
+            
+            data.activeList.forEach(c => {
+              // 把後端傳來的所有資料存進字典，方便等下瞬間帶入
+              globalCasesData[c.id] = c;
+              const option = document.createElement('option');
+              option.value = c.id; 
+              option.text = c.id + " - " + c.name;
+              caseSelector.appendChild(option);
+            });
+          } else {
+            caseSelector.classList.remove('loading-select');
+            caseSelector.innerHTML = '<option value="">❌ 讀取資料失敗</option>';
+          }
+        })
+        .catch(error => {
+          caseSelector.classList.remove('loading-select');
+          caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤</option>';
+        });
+    };
+
+    // 🌟 魔法在此：下拉選單改變時，瞬間填入舊資料
+    document.getElementById('caseSelector').addEventListener('change', function() {
+      const formArea = document.getElementById('formArea');
+      const selectedId = this.value;
+
+      if (!selectedId) {
+        formArea.style.display = 'none';
+        return;
+      }
+
+      formArea.style.display = 'block';
+      const c = globalCasesData[selectedId];
+      
+      // 先填入一定有的地址
+      document.getElementById('address').value = c.address || "";
+
+      // 如果有填過「家庭資料」，就把剩下的也填滿
+      if (c.familyData) {
+        document.getElementById('grade').value = c.familyData.grade || "";
+        
+        // 處理日期格式讓 input[type=date] 讀得懂 (YYYY-MM-DD)
+        if(c.familyData.birthDate) {
+           const d = new Date(c.familyData.birthDate);
+           if(!isNaN(d)) {
+             document.getElementById('birthDate').value = d.toISOString().split('T')[0];
+           }
+        }
+        
+        document.getElementById('registry').value = c.familyData.registry || "";
+        document.getElementById('homePhone').value = c.familyData.homePhone || "";
+        document.getElementById('mobile').value = c.familyData.mobile || "";
+        document.getElementById('caregiver').value = c.familyData.caregiver || "";
+        document.getElementById('contactTime').value = c.familyData.contactTime || "";
+        document.getElementById('health').value = c.familyData.health || "";
+        document.getElementById('marriage').value = c.familyData.marriage || "";
+        document.getElementById('members').value = c.familyData.members || "";
+      } else {
+        // 如果是新戶第一次填，把格子清空 (保留地址)
+        document.getElementById('grade').value = "";
+        document.getElementById('birthDate').value = "";
+        document.getElementById('registry').value = "";
+        document.getElementById('homePhone').value = "";
+        document.getElementById('mobile').value = "";
+        document.getElementById('caregiver').value = "";
+        document.getElementById('contactTime').value = "";
+        document.getElementById('health').value = "";
+        document.getElementById('marriage').value = "";
+        document.getElementById('members').value = "";
+      }
+    });
+
+    document.getElementById('familyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const statusDiv = document.getElementById('statusMsg');
+      const submitBtn = document.getElementById('submitBtn');
+      const selectedId = document.getElementById('caseSelector').value;
+      const caseName = globalCasesData[selectedId].name;
+
+      statusDiv.style.color = "#333";
+      statusDiv.innerText = "⏳ 資料寫入與覆蓋舊檔中，請稍候...";
+      submitBtn.disabled = true;
+
+      // 處理選擇性上傳的圖片
+      const fileInput = document.getElementById('genogramImage');
+      const file = fileInput.files[0];
+      let base64String = ""; let mimeType = "";
+
+      if (file) {
+        mimeType = file.type;
+        base64String = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result.split(',')[1]); 
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const formData = {
+        action: "family", 
+        householdId: selectedId, 
+        caseName: caseName,       
+        grade: document.getElementById('grade').value,
+        birthDate: document.getElementById('birthDate').value,
+        address: document.getElementById('address').value,
+        registry: document.getElementById('registry').value,
+        homePhone: document.getElementById('homePhone').value,
+        mobile: document.getElementById('mobile').value,
+        caregiver: document.getElementById('caregiver').value,
+        contactTime: document.getElementById('contactTime').value,
+        health: document.getElementById('health').value,
+        marriage: document.getElementById('marriage').value,
+        members: document.getElementById('members').value,
+        imageFile: base64String,
+        imageMimeType: mimeType
+      };
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          statusDiv.style.color = "green";
+          statusDiv.innerHTML = "✅ 家庭資料已成功更新並覆蓋舊檔！";
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = "❌ 錯誤：" + data.message;
+        }
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "❌ 網路連線錯誤：" + error;
+      })
+      .finally(() => { submitBtn.disabled = false; });
+    });
+  </script>
+
+</body>
+</html>
