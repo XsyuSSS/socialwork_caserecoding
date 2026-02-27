@@ -96,7 +96,6 @@
   <div id="statusMsg"></div>
 
   <script>
-    // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
 
     // 網頁一打開，就去跟後端要名單
@@ -110,18 +109,7 @@
           if(data.status === 'success') {
             caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
             
-           // 網頁一打開，就去跟後端要名單
-    window.onload = function() {
-      const caseSelector = document.getElementById('caseSelector');
-      const submitBtn = document.getElementById('submitBtn');
-
-      fetch(GAS_URL)
-        .then(response => response.json())
-        .then(data => {
-          if(data.status === 'success') {
-            caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
-            
-            // 🌟 就是這裡！把 caseList 改成 activeList 就可以了！
+            // 🌟 將 activeList 變成選單
             data.activeList.forEach(c => {
               const option = document.createElement('option');
               option.value = c.id + "|" + c.name; 
@@ -136,7 +124,7 @@
         })
         .catch(error => {
           caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤或系統異常</option>';
-          console.error("錯誤細節：", error); // 加上這行以後比較好抓蟲
+          console.error("錯誤細節：", error); 
         });
     };
 
@@ -162,8 +150,8 @@
 
       const formData = {
         action: "record", 
-        householdId: householdId, // 拆解出來的案號
-        caseName: caseName,       // 拆解出來的姓名
+        householdId: householdId, 
+        caseName: caseName,       
         visitDate: document.getElementById('visitDate').value,
         visitMethod: document.getElementById('visitMethod').value,
         visitTarget: document.getElementById('visitTarget').value,
