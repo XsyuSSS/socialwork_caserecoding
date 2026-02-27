@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>社工個案紀錄系統</title>
-  
   <link rel="icon" type="image/jpeg" href="photo.jpg">
   
   <style>
@@ -14,10 +13,14 @@
     /* 狀態看板設計 */
     .dashboard { max-width: 800px; margin: 30px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
     .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; text-align: center; border-top: 4px solid #3498db; }
-    .stat-box.warning { border-top-color: #e74c3c; } /* 待辦事項用紅色提醒 */
+    .stat-box.warning { border-top-color: #e74c3c; } 
     .stat-title { font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;}
     .stat-number { font-size: 1.5em; color: #2c3e50; font-weight: bold; }
     .stat-detail { font-size: 0.8em; color: #95a5a6; margin-top: 5px; }
+
+    /* 🌟 新增：讓方塊可以點擊的特效 */
+    .clickable-box { cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+    .clickable-box:hover { background-color: #f0f7fb; transform: scale(1.02); }
 
     /* 下方功能卡片設計 */
     .container { max-width: 800px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 20px; }
@@ -26,6 +29,17 @@
     .card h3 { color: #2980b9; margin-bottom: 10px; font-size: 1.1em;}
     .card p { font-size: 0.85em; color: #666; }
     .icon { font-size: 35px; margin-bottom: 10px; }
+
+    /* 🌟 新增：彈出視窗 (Modal) 的樣式設計 */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+    .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 10px; width: 85%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 75vh; overflow-y: auto; position: relative;}
+    .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close-btn:hover { color: #e74c3c; }
+    .region-title { color: #2980b9; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; margin-top: 20px; font-size: 1.1em;}
+    .case-item { padding: 10px 5px; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center;}
+    .case-item:last-child { border-bottom: none; }
+    .case-id { background-color: #ecf0f1; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: #2c3e50; font-size: 0.9em;}
+    .case-name { font-size: 1em; color: #333; }
   </style>
 </head>
 <body>
@@ -36,8 +50,8 @@
   </div>
 
   <div class="dashboard">
-    <div class="stat-box">
-      <div class="stat-title">👥 目前服務中</div>
+    <div class="stat-box clickable-box" onclick="openModal()">
+      <div class="stat-title">👥 目前服務中 <span style="font-size: 0.8em; color:#3498db;">(👆點擊看名單)</span></div>
       <div class="stat-number" id="activeCases">-- 戶 / -- 童</div>
       <div class="stat-detail">已開案且服務中個案</div>
     </div>
@@ -59,19 +73,16 @@
       <h3>1. 新案建檔 (接案)</h3>
       <p>新增接案摘要，並初步評估是否進行後續初訪與開案。</p>
     </a>
-
     <a href="interview.html" class="card">
       <div class="icon">🏡</div>
       <h3>2. 填寫初訪紀錄</h3>
       <p>針對需初訪之個案，填寫詳細家戶狀況並自動生成 Word 檔。</p>
     </a>
-
-    <a href="record.html" class="card"> 
+    <a href="record.html" class="card">
       <div class="icon">📅</div>
       <h3>3. 每月個案紀錄</h3>
       <p>填寫每月關懷、發放物資或獎助學金等例行與非例行服務。</p>
     </a>
-
     <a href="#" class="card" onclick="alert('功能開發中！這裡將顯示您的服務量統計。')">
       <div class="icon">📊</div>
       <h3>4. 服務量統計分析</h3>
@@ -79,17 +90,29 @@
     </a>
   </div>
 
+  <div id="caseModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 style="margin-top:0; color:#2c3e50;">📋 服務中個案明細</h2>
+      <p style="color:#7f8c8d; font-size:0.9em;">(請與您的 Google Sheet 對比此清單)</p>
+      <div id="modalBody">
+        名單載入中...
+      </div>
+    </div>
+  </div>
+
   <script>
     // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
 
+    // 🌟 新增：建立一個全域變數，用來暫存後端抓下來的名單
+    let globalCaseList = [];
+
     window.onload = function() {
-      // 顯示讀取中
       document.getElementById('activeCases').innerText = "讀取中...";
       document.getElementById('pendingInterviews').innerText = "讀取中...";
       document.getElementById('pendingRecords').innerText = "讀取中...";
 
-      // 向後端請求數據
       fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
@@ -97,6 +120,9 @@
             document.getElementById('activeCases').innerText = data.activeHouseholds + " 戶 / " + data.activeChildren + " 童";
             document.getElementById('pendingInterviews').innerText = data.pendingInterviews + " 件";
             document.getElementById('pendingRecords').innerText = data.pendingRecords;
+            
+            // 🌟 收到資料後，把名單存起來備用
+            globalCaseList = data.caseList || [];
           } else {
             document.getElementById('activeCases').innerText = "讀取失敗";
           }
@@ -106,6 +132,81 @@
           document.getElementById('activeCases').innerText = "連線失敗";
         });
     };
+
+    // 🌟 新增：打開彈出視窗的函數
+    function openModal() {
+      document.getElementById('caseModal').style.display = 'block';
+      renderModalContent(); // 打開時開始畫名單
+    }
+
+    // 🌟 新增：關閉彈出視窗的函數
+    function closeModal() {
+      document.getElementById('caseModal').style.display = 'none';
+    }
+
+    // 🌟 新增：如果點擊視窗外面的半透明黑底，也自動關閉
+    window.onclick = function(event) {
+      const modal = document.getElementById('caseModal');
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    // 🌟 新增：負責將名單分區 (H、L) 並畫在畫面上的函數
+    function renderModalContent() {
+      const modalBody = document.getElementById('modalBody');
+      
+      if (globalCaseList.length === 0) {
+        modalBody.innerHTML = "<p style='color:red;'>目前名單為空，請確認後台審核狀態是否正確標記為「☑通過  □不通過」。</p>";
+        return;
+      }
+
+      // 準備三個空陣列來裝不同區域的人
+      let houbi = [];
+      let liuying = [];
+      let others = [];
+
+      // 把人分門別類
+      globalCaseList.forEach(c => {
+        const id = c.id ? c.id.toUpperCase().trim() : "";
+        if (id.startsWith('H')) {
+          houbi.push(c);
+        } else if (id.startsWith('L')) {
+          liuying.push(c);
+        } else {
+          others.push(c);
+        }
+      });
+
+      // 開始組裝要顯示在畫面上的 HTML
+      let htmlContent = "";
+      
+      // 顯示後壁區
+      if (houbi.length > 0) {
+        htmlContent += `<div class="region-title">📍 後壁區 (H) - ${houbi.length} 戶</div>`;
+        houbi.forEach(c => {
+          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
+        });
+      }
+      
+      // 顯示柳營區
+      if (liuying.length > 0) {
+        htmlContent += `<div class="region-title">📍 柳營區 (L) - ${liuying.length} 戶</div>`;
+        liuying.forEach(c => {
+          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
+        });
+      }
+
+      // 顯示其他區域 (以防未來有 N 開頭的)
+      if (others.length > 0) {
+        htmlContent += `<div class="region-title">📍 其他區域 - ${others.length} 戶</div>`;
+        others.forEach(c => {
+          htmlContent += `<div class="case-item"><span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
+        });
+      }
+
+      modalBody.innerHTML = htmlContent;
+    }
   </script>
 </body>
 </html>
