@@ -79,5 +79,33 @@
     </a>
   </div>
 
+  <script>
+    // ！！！記得換成你最新的 GAS_URL ！！！
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
+
+    window.onload = function() {
+      // 顯示讀取中
+      document.getElementById('activeCases').innerText = "讀取中...";
+      document.getElementById('pendingInterviews').innerText = "讀取中...";
+      document.getElementById('pendingRecords').innerText = "讀取中...";
+
+      // 向後端請求數據
+      fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            document.getElementById('activeCases').innerText = data.activeHouseholds + " 戶 / " + data.activeChildren + " 童";
+            document.getElementById('pendingInterviews').innerText = data.pendingInterviews + " 件";
+            document.getElementById('pendingRecords').innerText = data.pendingRecords;
+          } else {
+            document.getElementById('activeCases').innerText = "讀取失敗";
+          }
+        })
+        .catch(error => {
+          console.error("連線錯誤:", error);
+          document.getElementById('activeCases').innerText = "連線失敗";
+        });
+    };
+  </script>
 </body>
 </html>
