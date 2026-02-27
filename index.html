@@ -4,16 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>社工個案紀錄系統</title>
+  
   <link rel="icon" type="image/jpeg" href="photo.jpg">
+  
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
     .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
-    .container { max-width: 800px; margin: 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 0 20px; }
-    .card { background: white; padding: 30px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; transition: transform 0.2s; }
+    
+    /* 狀態看板設計 */
+    .dashboard { max-width: 800px; margin: 30px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
+    .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; text-align: center; border-top: 4px solid #3498db; }
+    .stat-box.warning { border-top-color: #e74c3c; } /* 待辦事項用紅色提醒 */
+    .stat-title { font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;}
+    .stat-number { font-size: 1.5em; color: #2c3e50; font-weight: bold; }
+    .stat-detail { font-size: 0.8em; color: #95a5a6; margin-top: 5px; }
+
+    /* 下方功能卡片設計 */
+    .container { max-width: 800px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 20px; }
+    .card { background: white; padding: 25px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; transition: transform 0.2s; }
     .card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    .card h3 { color: #2980b9; margin-bottom: 15px; }
-    .card p { font-size: 0.9em; color: #666; }
-    .icon { font-size: 40px; margin-bottom: 10px; }
+    .card h3 { color: #2980b9; margin-bottom: 10px; font-size: 1.1em;}
+    .card p { font-size: 0.85em; color: #666; }
+    .icon { font-size: 35px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -23,22 +35,46 @@
     <p>輕鬆建檔、快速紀錄、自動生成報表</p>
   </div>
 
+  <div class="dashboard">
+    <div class="stat-box">
+      <div class="stat-title">👥 目前服務中</div>
+      <div class="stat-number" id="activeCases">-- 戶 / -- 童</div>
+      <div class="stat-detail">已開案且服務中個案</div>
+    </div>
+    <div class="stat-box warning">
+      <div class="stat-title">🏡 待完成初訪</div>
+      <div class="stat-number" style="color: #e74c3c;" id="pendingInterviews">-- 件</div>
+      <div class="stat-detail">已接案但尚未寫初訪</div>
+    </div>
+    <div class="stat-box warning">
+      <div class="stat-title">📝 當月紀錄狀態</div>
+      <div class="stat-number" style="color: #e74c3c;" id="pendingRecords">-- 戶未寫</div>
+      <div class="stat-detail">本月尚有紀錄未完成</div>
+    </div>
+  </div>
+
   <div class="container">
     <a href="intake.html" class="card">
       <div class="icon">🆕</div>
-      <h3>1. 新案建檔與初訪</h3>
-      <p>新增接案摘要、評估是否開案，並填寫詳細家戶初訪表。</p>
+      <h3>1. 新案建檔 (接案)</h3>
+      <p>新增接案摘要，並初步評估是否進行後續初訪與開案。</p>
+    </a>
+
+    <a href="interview.html" class="card">
+      <div class="icon">🏡</div>
+      <h3>2. 填寫初訪紀錄</h3>
+      <p>針對需初訪之個案，填寫詳細家戶狀況並自動生成 Word 檔。</p>
     </a>
 
     <a href="#" class="card" onclick="alert('功能開發中！下一步就做這個。')">
       <div class="icon">📅</div>
-      <h3>2. 每月個案紀錄</h3>
+      <h3>3. 每月個案紀錄</h3>
       <p>填寫每月關懷、發放物資或獎助學金等例行與非例行服務。</p>
     </a>
 
     <a href="#" class="card" onclick="alert('功能開發中！這裡將顯示您的服務量統計。')">
       <div class="icon">📊</div>
-      <h3>3. 服務量統計分析</h3>
+      <h3>4. 服務量統計分析</h3>
       <p>查看每月服務總量、特殊議題分佈與各類服務數據。</p>
     </a>
   </div>
