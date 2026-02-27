@@ -61,3 +61,50 @@
 
   <script>
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
+
+    document.getElementById('intakeForm').addEventListener('submit', function(e) {
+      e.preventDefault(); 
+      const statusDiv = document.getElementById('statusMsg');
+      const submitBtn = document.querySelector('button[type="submit"]');
+
+      statusDiv.style.color = "#333";
+      statusDiv.innerText = "⏳ 資料傳送中，請稍候...";
+      submitBtn.disabled = true;
+
+      const formData = {
+        action: "intake", 
+        householdId: document.getElementById('householdId').value,
+        intakeDate: document.getElementById('intakeDate').value,
+        caseName: document.getElementById('caseName').value,
+        intakeSource: document.getElementById('intakeSource').value,
+        needInterview: document.getElementById('needInterview').value
+      };
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          statusDiv.style.color = "green";
+          // 成功後顯示前往初訪的按鈕
+          statusDiv.innerHTML = "✅ 接案紀錄已成功建檔！<br><br><a href='interview.html' style='display:inline-block; padding: 10px 15px; background-color: #3498db; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>👉 點此接著填寫【初訪紀錄】</a>";
+          document.getElementById('intakeForm').reset();
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = "❌ 錯誤：" + data.message;
+        }
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "❌ 網路連線錯誤：" + error;
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+      });
+    });
+  </script>
+</body>
+</html>
