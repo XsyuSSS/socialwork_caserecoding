@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社工系統：1. 新增接案紀錄</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 450px; margin: auto; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+    button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; width: 100%; margin-top: 20px;}
+    button:hover { background-color: #45a049; }
+    #statusMsg { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>1️⃣第一步：新增接案紀錄</h2>
+  <form id="intakeForm">
+    <label>家戶/案件編號(後壁H、柳營L):</label>
+    <input type="text" id="householdId" placeholder="例如：2026-001" required>
+
+    <label>接案日期:</label>
+    <input type="date" id="intakeDate" required>
+
+    <label>個案姓名:</label>
+    <input type="text" id="caseName" placeholder="服務兒童姓名" required>
+
+    <label>接案來源 / 簡要說明:</label>
+    <textarea id="intakeSource" rows="3" placeholder="例如：導師轉介，表示孩子近期常缺交作業..." required></textarea>
+
+    <label>初步評估：是否需要初訪？</label>
+    <select id="needInterview">
+      <option value="是，安排初訪">是，安排初訪</option>
+      <option value="否，為目前服務個案">否，登錄個案資料</option>
+      <option value="否，轉介其他資源">否，轉介其他資源</option>
+      <option value="否，不符開案條件">否，不符開案條件</option>
+    </select>
+
+    <button type="submit">送出接案資料</button>
+  </form>
+
+  <div id="statusMsg"></div>
+
+  <script>
+    // ！！！請將下方引號內的網址替換成你的 Google Apps Script 部署網址！！！
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
+
+    document.getElementById('intakeForm').addEventListener('submit', function(e) {
+      e.preventDefault(); 
+      const statusDiv = document.getElementById('statusMsg');
+      statusDiv.style.color = "#333";
+      statusDiv.innerText = "資料傳送中，請稍候...";
+
+      // 打包接案資料 (對應後端的欄位)
+      const formData = {
+        action: "intake", // 告訴後端這是接案動作
+        householdId: document.getElementById('householdId').value,
+        intakeDate: document.getElementById('intakeDate').value,
+        caseName: document.getElementById('caseName').value,
+        intakeSource: document.getElementById('intakeSource').value,
+        needInterview: document.getElementById('needInterview').value
+      };
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          statusDiv.style.color = "green";
+          statusDiv.innerText = "✅ 接案紀錄已成功建檔！";
+          document.getElementById('intakeForm').reset();
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = "❌ 錯誤：" + data.message;
+        }
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "❌ 網路連線錯誤：" + error;
+      });
+    });
+  </script>
+
+</body>
+</html>
