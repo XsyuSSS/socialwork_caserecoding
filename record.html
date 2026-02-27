@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社工系統：3. 每月個案紀錄</title>
+  
+  <link rel="icon" type="image/jpeg" href="photo.jpg">
+  
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 650px; margin: auto; background-color: #f4f7f6;}
+    h2 { color: #2c3e50; border-bottom: 2px solid #2980b9; padding-bottom: 10px; }
+    label { font-weight: bold; display: block; margin-top: 15px; color: #333; }
+    input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 12px 15px; background-color: #2980b9; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; font-weight: bold;}
+    button:hover { background-color: #1c5980; }
+    .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    #statusMsg { margin-top: 20px; font-weight: bold; text-align: center; }
+    
+    /* 頂部導覽列按鈕設計 */
+    .nav-btn { 
+      display: inline-block; margin-bottom: 20px; margin-right: 5px; padding: 8px 12px; 
+      background-color: #ecf0f1; color: #2c3e50; text-decoration: none; 
+      border-radius: 5px; font-weight: bold; transition: background-color 0.2s;
+    }
+    .nav-btn:hover { background-color: #bdc3c7; }
+    .nav-active { background-color: #2ecc71; color: white; }
+    .nav-active:hover { background-color: #27ae60; }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="nav-btn">🏠 首頁</a>
+  <a href="intake.html" class="nav-btn">📝 1. 接案</a>
+  <a href="interview.html" class="nav-btn">🏡 2. 初訪</a>
+  <a href="record.html" class="nav-btn nav-active">📅 3. 每月紀錄</a>
+
+  <h2>3️⃣第三步：填寫每月個案紀錄</h2>
+  <form id="recordForm">
+    
+    <div class="section">
+      <label>案號 (家戶編號):</label>
+      <input type="text" id="householdId" placeholder="例如：H-001" required>
+      
+      <label>個案姓名:</label>
+      <input type="text" id="caseName" required>
+      
+      <label>訪視/會談日期:</label>
+      <input type="date" id="visitDate" required>
+    </div>
+
+    <div class="section">
+      <h3>訪視基本資訊</h3>
+      <label>訪視方式:</label>
+      <select id="visitMethod">
+        <option value="家訪">家訪</option>
+        <option value="電訪">電訪</option>
+        <option value="社群軟體">社群軟體</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label>訪視對象:</label>
+      <select id="visitTarget">
+        <option value="照顧者">照顧者</option>
+        <option value="學生本人">學生本人</option>
+        <option value="鄰居">鄰居</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label>本次特殊議題:</label>
+      <select id="specialIssue">
+        <option value="無">無</option>
+        <option value="經濟困難">經濟困難</option>
+        <option value="兒保">兒保</option>
+        <option value="家暴">家暴</option>
+        <option value="性平事件">性平事件</option>
+        <option value="其它">其它</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h3>紀錄內容</h3>
+      <label>個案與案家目前生活狀況簡述:</label>
+      <textarea id="lifeStatus" rows="4" required></textarea>
+
+      <label>訪視／會談過程紀錄 (目的與談話內容):</label>
+      <textarea id="processRecord" rows="6" required></textarea>
+
+      <label>處理方式:</label>
+      <select id="handlingMethod">
+        <option value="例行性關懷">例行性關懷</option>
+        <option value="提高關懷頻率">提高關懷頻率</option>
+        <option value="通報">通報</option>
+        <option value="轉介">轉介</option>
+        <option value="其他">其他</option>
+      </select>
+
+      <label>處理方式摘要:</label>
+      <textarea id="handlingSummary" rows="3" required></textarea>
+    </div>
+
+    <button type="submit">送出紀錄並生成文件</button>
+  </form>
+
+  <div id="statusMsg"></div>
+
+  <script>
+    // ！！！記得換成你最新的 GAS_URL ！！！
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
+
+    document.getElementById('recordForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const statusDiv = document.getElementById('statusMsg');
+      const submitBtn = document.querySelector('button[type="submit"]');
+      
+      statusDiv.style.color = "#333";
+      statusDiv.innerText = "⏳ 紀錄處理與文件生成中，請稍候...";
+      submitBtn.disabled = true;
+
+      const formData = {
+        action: "record", // 告訴後端這是每月紀錄動作
+        householdId: document.getElementById('householdId').value,
+        caseName: document.getElementById('caseName').value,
+        visitDate: document.getElementById('visitDate').value,
+        visitMethod: document.getElementById('visitMethod').value,
+        visitTarget: document.getElementById('visitTarget').value,
+        specialIssue: document.getElementById('specialIssue').value,
+        lifeStatus: document.getElementById('lifeStatus').value,
+        processRecord: document.getElementById('processRecord').value,
+        handlingMethod: document.getElementById('handlingMethod').value,
+        handlingSummary: document.getElementById('handlingSummary').value
+      };
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+          statusDiv.style.color = "green";
+          statusDiv.innerHTML = "✅ 每月紀錄已成功寫入，並生成關懷紀錄表！";
+          document.getElementById('recordForm').reset();
+        } else {
+          statusDiv.style.color = "red";
+          statusDiv.innerText = "❌ 錯誤：" + data.message;
+        }
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "❌ 網路連線錯誤：" + error;
+      })
+      .finally(() => {
+        submitBtn.disabled = false;
+      });
+    });
+  </script>
+
+</body>
+</html>
