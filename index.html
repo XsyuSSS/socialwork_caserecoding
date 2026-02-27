@@ -23,15 +23,16 @@
     <label>接案日期:</label>
     <input type="date" id="intakeDate" required>
 
-    <label>主要個案姓名:</label>
-    <input type="text" id="caseName" placeholder="填寫主要評估的孩子姓名" required>
+    <label>個案姓名:</label>
+    <input type="text" id="caseName" placeholder="填寫案主姓名" required>
 
     <label>接案來源 / 簡要說明:</label>
     <textarea id="intakeSource" rows="3" placeholder="例如：導師轉介，表示孩子近期常缺交作業..." required></textarea>
 
     <label>初步評估：是否需要初訪？</label>
     <select id="needInterview">
-      <option value="是，安排初訪">是，安排初訪</option>
+      <option value="是，安排初訪">是，安排初訪
+      <option value="否，為目前服務個案">否，登錄個案資料
       <option value="否，轉介其他資源">否，轉介其他資源</option>
       <option value="否，不符開案條件">否，不符開案條件</option>
     </select>
