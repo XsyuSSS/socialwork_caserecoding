@@ -110,23 +110,33 @@
           if(data.status === 'success') {
             caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
             
-            // 將後端傳來的名單，一個一個變成下拉選項
-            data.caseList.forEach(c => {
+           // 網頁一打開，就去跟後端要名單
+    window.onload = function() {
+      const caseSelector = document.getElementById('caseSelector');
+      const submitBtn = document.getElementById('submitBtn');
+
+      fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+          if(data.status === 'success') {
+            caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
+            
+            // 🌟 就是這裡！把 caseList 改成 activeList 就可以了！
+            data.activeList.forEach(c => {
               const option = document.createElement('option');
-              // 我們把 ID 和姓名用 | 符號綁在一起當作 value，例如 "H-001|王小明"
               option.value = c.id + "|" + c.name; 
               option.text = c.id + " - " + c.name;
               caseSelector.appendChild(option);
             });
             
-            // 名單載入完成後，解開送出按鈕的封印
             submitBtn.disabled = false; 
           } else {
             caseSelector.innerHTML = '<option value="">❌ 讀取名單失敗</option>';
           }
         })
         .catch(error => {
-          caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤</option>';
+          caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤或系統異常</option>';
+          console.error("錯誤細節：", error); // 加上這行以後比較好抓蟲
         });
     };
 
