@@ -19,10 +19,20 @@
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
     
-    /* 🌟 新增：複選題的排版設計 */
     .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 8px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; background-color: #fafcfb; }
     .checkbox-group label { display: flex; align-items: center; margin-top: 0; font-weight: normal; cursor: pointer; color: #444; }
     .checkbox-group input[type="checkbox"] { width: auto; margin-right: 6px; margin-top: 0; transform: scale(1.2); cursor: pointer;}
+
+    /* 🌟 新增的下拉選單呼吸燈特效 */
+    @keyframes selectFlash {
+      0% { background-color: #fdf2e9; color: #e67e22; border-color: #e67e22; opacity: 1; }
+      50% { background-color: #fff; color: #e67e22; border-color: #ccc; opacity: 0.5; }
+      100% { background-color: #fdf2e9; color: #e67e22; border-color: #e67e22; opacity: 1; }
+    }
+    .loading-select {
+      animation: selectFlash 1.5s infinite;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -37,8 +47,8 @@
     
     <div class="section">
       <label>選擇服務個案:</label>
-      <select id="caseSelector" required>
-        <option value="">⏳ 名單載入中，請稍候...</option>
+      <select id="caseSelector" class="loading-select" required>
+        <option value="">⏳ 正在與 Google 雲端連線，讀取名單中...</option>
       </select>
       
       <label>訪視/會談日期:</label>
@@ -105,7 +115,6 @@
     // ！！！記得換成你最新的 GAS_URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec'; 
 
-    // 網頁一打開，就去跟後端要名單
     window.onload = function() {
       const caseSelector = document.getElementById('caseSelector');
       const submitBtn = document.getElementById('submitBtn');
@@ -114,6 +123,8 @@
         .then(response => response.json())
         .then(data => {
           if(data.status === 'success') {
+            // 🌟 讀取成功後，把閃爍的 class 拔掉，恢復正常顏色
+            caseSelector.classList.remove('loading-select');
             caseSelector.innerHTML = '<option value="">-- 請下拉選擇個案 --</option>';
             
             data.activeList.forEach(c => {
@@ -125,26 +136,24 @@
             
             submitBtn.disabled = false; 
           } else {
+            caseSelector.classList.remove('loading-select');
             caseSelector.innerHTML = '<option value="">❌ 讀取名單失敗</option>';
           }
         })
         .catch(error => {
+          caseSelector.classList.remove('loading-select');
           caseSelector.innerHTML = '<option value="">❌ 網路連線錯誤或系統異常</option>';
           console.error("錯誤細節：", error); 
         });
     };
 
-    // 🌟 獲取複選題數值的專用函數 (會自動用「、」把多個選項接起來)
     function getCheckedValues(checkboxName) {
       const checkboxes = document.querySelectorAll(`input[name="${checkboxName}"]:checked`);
       let values = [];
-      checkboxes.forEach((cb) => {
-        values.push(cb.value);
-      });
+      checkboxes.forEach((cb) => { values.push(cb.value); });
       return values.join('、'); 
     }
 
-    // 表單送出時的動作
     document.getElementById('recordForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -157,7 +166,6 @@
         return;
       }
 
-      // 🌟 送出前檢查是否有勾選複選題
       const finalVisitMethod = getCheckedValues('visitMethod');
       const finalVisitTarget = getCheckedValues('visitTarget');
       const finalSpecialIssue = getCheckedValues('specialIssue');
@@ -177,9 +185,9 @@
         householdId: householdId, 
         caseName: caseName,       
         visitDate: document.getElementById('visitDate').value,
-        visitMethod: finalVisitMethod,     // 帶入串好的字串 (例如：家訪、電訪)
-        visitTarget: finalVisitTarget,     // 帶入串好的字串
-        specialIssue: finalSpecialIssue,   // 帶入串好的字串
+        visitMethod: finalVisitMethod,     
+        visitTarget: finalVisitTarget,     
+        specialIssue: finalSpecialIssue,   
         lifeStatus: document.getElementById('lifeStatus').value,
         processRecord: document.getElementById('processRecord').value,
         handlingMethod: document.getElementById('handlingMethod').value,
