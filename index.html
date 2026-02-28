@@ -127,7 +127,7 @@
   </div>
 
   <script>
-    // ！！！記得換成你最新的 GAS_URL ！！！
+    // ！！！已經幫你填入最新的 GAS URL ！！！
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
 
     let globalLists = {
@@ -175,6 +175,70 @@
           }
         })
         .catch(error => {
+          // ！！！修復了斷尾的程式碼！！！
           console.error("連線錯誤:", error);
           activeEl.classList.remove('loading-blink');
-          interviewEl.classList.remove
+          interviewEl.classList.remove('loading-blink');
+          recordEl.classList.remove('loading-blink');
+          
+          activeEl.innerText = "連線失敗";
+          interviewEl.innerText = "連線失敗";
+          recordEl.innerText = "連線失敗";
+        });
+    };
+
+    function openModal(listType, titleText) {
+      document.getElementById('caseModal').style.display = 'block';
+      document.getElementById('modalTitle').innerText = titleText;
+      renderModalContent(globalLists[listType]); 
+    }
+
+    function closeModal() {
+      document.getElementById('caseModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const modal = document.getElementById('caseModal');
+      if (event.target == modal) closeModal();
+    }
+
+    function renderModalContent(listToRender) {
+      const modalBody = document.getElementById('modalBody');
+      
+      if (listToRender.length === 0) {
+        modalBody.innerHTML = "<p style='color:#27ae60; font-weight:bold; font-size:1.1em; padding:20px; text-align:center;'>🎉 太棒了！這個項目目前全部都已完成！</p>";
+        return;
+      }
+
+      let houbi = [];
+      let liuying = [];
+      let others = [];
+
+      listToRender.forEach(c => {
+        const id = c.id ? c.id.toUpperCase().trim() : "";
+        if (id.startsWith('H')) { houbi.push(c); } 
+        else if (id.startsWith('L')) { liuying.push(c); } 
+        else { others.push(c); }
+      });
+
+      let htmlContent = "";
+      
+      const buildSection = (title, list) => {
+        if (list.length === 0) return "";
+        let sectionHtml = `<div class="region-title">${title} - ${list.length} 筆</div>`;
+        list.forEach(c => {
+          let missingTag = c.missing ? `<span class="missing-tag">${c.missing}未寫</span>` : "";
+          sectionHtml += `<div class="case-item">${missingTag}<span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
+        });
+        return sectionHtml;
+      };
+
+      htmlContent += buildSection("🧸 後壁區 (H)", houbi);
+      htmlContent += buildSection("🪆 柳營區 (L)", liuying);
+      htmlContent += buildSection("🎁 其他區域", others);
+
+      modalBody.innerHTML = htmlContent;
+    }
+  </script>
+</body>
+</html>
