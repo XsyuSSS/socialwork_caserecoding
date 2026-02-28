@@ -7,27 +7,27 @@
   <link rel="icon" type="image/jpeg" href="photo.jpg">
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
-    .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+    .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100;}
     
     .nav-bar { padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px;}
     .nav-btn { display: inline-block; margin: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
 
-    .dashboard { max-width: 900px; margin: 0 auto 20px auto; display: flex; gap: 15px; padding: 0 20px; flex-wrap: wrap;}
+    /* 儀表板 */
+    .dashboard { max-width: 1200px; margin: 0 auto 20px auto; display: flex; gap: 15px; padding: 0 20px; flex-wrap: wrap;}
     .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; border-left: 5px solid #ccc;}
     .stat-title { font-size: 0.9em; color: #7f8c8d; font-weight: bold; margin-bottom: 8px;}
-    .stat-status { font-size: 1.2em; font-weight: bold; display: flex; align-items: center; justify-content: space-between;}
+    .stat-status { font-size: 1.2em; font-weight: bold;}
     .status-ok { color: #27ae60; }
     .status-warn { color: #e74c3c; }
 
-    .main-container { max-width: 900px; margin: 0 auto; display: flex; gap: 20px; padding: 0 20px; flex-wrap: wrap; }
+    /* 控制列 (選擇年份與週期) */
+    .control-bar { max-width: 1200px; margin: 0 auto 20px auto; padding: 15px 20px; background: #fff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
     
-    .palette { width: 200px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .palette h3 { margin-top: 0; color: #2c3e50; font-size: 1.1em; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;}
-    .palette-hint { font-size: 0.85em; color: #7f8c8d; margin-bottom: 15px; }
-    
-    .block { padding: 12px; margin-bottom: 10px; border-radius: 6px; font-weight: bold; text-align: center; cursor: grab; color: white; user-select: none; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: transform 0.1s;}
+    /* 左側調色盤 (改為橫向浮動在上方) */
+    .palette { display: flex; gap: 10px; flex-wrap: wrap;}
+    .block { padding: 8px 12px; border-radius: 6px; font-weight: bold; text-align: center; cursor: grab; color: white; user-select: none; box-shadow: 0 2px 4px rgba(0,0,0,0.15); font-size: 0.9em;}
     .block:active { cursor: grabbing; transform: scale(0.95); }
     
     .type-work { background-color: #3498db; }       
@@ -35,29 +35,30 @@
     .type-rest { background-color: #2ecc71; }       
     .type-leave { background-color: #f1c40f; color: #333; } 
 
-    .calendar-container { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .cycle-selector { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold;}
-    .cycle-selector input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    /* 12個月的日曆排版 */
+    .calendar-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 0 20px 40px 20px;}
+    .month-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .month-card h3 { text-align: center; color: #2c3e50; margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1;}
     
-    .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-    .day-header { text-align: center; font-weight: bold; color: #7f8c8d; padding: 10px 0; background: #ecf0f1; border-radius: 4px; font-size: 0.9em;}
-    
-    .cell { border: 2px dashed #bdc3c7; border-radius: 6px; height: 80px; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 4px; transition: background-color 0.2s;}
-    .cell.drag-over { background-color: #f0f7fb; border-color: #3498db; }
-    .cell-date { font-size: 0.8em; color: #95a5a6; margin-bottom: 4px; text-align: right; font-weight: bold;}
-    
-    .cell .block { margin-bottom: 0; padding: 8px 4px; font-size: 0.9em; box-shadow: none; cursor: pointer; }
+    .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .day-header { text-align: center; font-weight: bold; color: #7f8c8d; padding: 5px 0; font-size: 0.8em;}
+    .day-header.weekend { color: #e74c3c; } /* 日曆標題的六日顯示紅色 */
 
-    .submit-area { text-align: right; margin-top: 20px; padding: 0 20px 40px 20px; max-width: 900px; margin-left: auto; margin-right: auto;}
-    .submit-area button { padding: 12px 25px; background-color: #2c3e50; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .submit-area button:hover { background-color: #1a252f; }
+    .cell { border: 1px dashed #bdc3c7; border-radius: 4px; height: 65px; display: flex; flex-direction: column; padding: 2px; transition: background-color 0.2s;}
+    .cell.drag-over { background-color: #f0f7fb; border-color: #3498db; }
+    .cell-date { font-size: 0.7em; color: #95a5a6; text-align: right; font-weight: bold; margin-bottom: 2px;}
+    
+    .cell .block { margin-bottom: 0; padding: 4px 2px; font-size: 0.75em; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center;}
+
+    .save-btn { padding: 10px 20px; background-color: #e67e22; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1em;}
+    .save-btn:hover { background-color: #d35400; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>📅 個人差勤與排班管理</h1>
-    <p>四週變形工時自動檢核系統 (拖曳排班)</p>
+    <h1 style="margin:0;">📅 2026 個人差勤與排班管理</h1>
+    <p style="margin:5px 0 0 0; font-size:0.9em;">拖曳方塊排班，點擊【儲存】即可同步至雲端</p>
   </div>
 
   <div class="nav-bar">
@@ -69,258 +70,255 @@
     <a href="schedule.html" class="nav-btn nav-active">5. 差勤排班</a>
   </div>
 
-  <div class="dashboard">
-    <div class="stat-box" id="stat-w12" style="border-left-color: #e74c3c;">
-      <div class="stat-title">🚨 第1-2週 例假檢查</div>
-      <div class="stat-status status-warn" id="text-w12">❌ 缺 2 天例假</div>
-      <div style="font-size: 0.8em; color: #95a5a6; margin-top: 5px;">每兩週必須有2天例假日</div>
-    </div>
-    
-    <div class="stat-box" id="stat-w34" style="border-left-color: #e74c3c;">
-      <div class="stat-title">🚨 第3-4週 例假檢查</div>
-      <div class="stat-status status-warn" id="text-w34">❌ 缺 2 天例假</div>
-      <div style="font-size: 0.8em; color: #95a5a6; margin-top: 5px;">每兩週必須有2天例假日</div>
-    </div>
-
-    <div class="stat-box" id="stat-total" style="border-left-color: #f1c40f;">
-      <div class="stat-title">✅ 四週總休假數 (例假+休息)</div>
-      <div class="stat-status status-warn" id="text-total">⚠️ 目前休 0 天 (應休8天)</div>
-      <div style="font-size: 0.8em; color: #95a5a6; margin-top: 5px;">28天內需排滿8天休假</div>
-    </div>
-  </div>
-
-  <div class="main-container">
-    
+  <div class="control-bar">
     <div class="palette">
-      <h3>🎨 班表方塊</h3>
-      <p class="palette-hint">請按住方塊，拖曳到右方的日期格子中放開。</p>
-      
-      <div class="block type-work" draggable="true" ondragstart="drag(event)" data-type="上班">💼 正常上班</div>
-      <div class="block type-regular" draggable="true" ondragstart="drag(event)" data-type="例假">🛑 例假 (禁排班)</div>
-      <div class="block type-rest" draggable="true" ondragstart="drag(event)" data-type="休息日">🍵 休息日 (可加班)</div>
-      <div class="block type-leave" draggable="true" ondragstart="drag(event)" data-type="特休/補休">🏖️ 特休/補休</div>
-      
-      <div style="margin-top: 20px; font-size: 0.8em; color: #7f8c8d; border-top: 1px dashed #ccc; padding-top: 10px;">
-        💡 提示：如果用手機操作不方便拖曳，也可以<strong style="color:#e74c3c;">直接點擊</strong>右邊格子裡的方塊來快速切換假別喔！
-      </div>
+      <div style="font-weight:bold; margin-right:10px; display:flex; align-items:center;">拖曳方塊：</div>
+      <div class="block type-work" draggable="true" ondragstart="drag(event)" data-type="上班">💼 上班</div>
+      <div class="block type-regular" draggable="true" ondragstart="drag(event)" data-type="例假">🛑 例假</div>
+      <div class="block type-rest" draggable="true" ondragstart="drag(event)" data-type="休息日">🍵 休息日</div>
+      <div class="block type-leave" draggable="true" ondragstart="drag(event)" data-type="特休/補休">🏖️ 特/補休</div>
     </div>
-
-    <div class="calendar-container">
-      <div class="cycle-selector">
-        <label>設定週期起始日 (第1天):</label>
-        <input type="date" id="cycleStartDate" onchange="generateGrid()">
+    
+    <div style="display:flex; align-items:center; gap:15px;">
+      <div style="font-size:0.9em; font-weight:bold;">
+        防呆起始日: <input type="date" id="cycleStartDate" onchange="checkRules()" style="padding:4px;">
       </div>
-      
-      <div class="grid" id="calendarGrid">
-      </div>
+      <button class="save-btn" id="saveBtn" onclick="saveSchedule()">☁️ 儲存班表</button>
     </div>
-
   </div>
 
-  <div class="submit-area">
-    <button onclick="saveSchedule()">☁️ 儲存班表至雲端 (即將開放)</button>
+  <div class="dashboard">
+    <div class="stat-box" id="stat-w12">
+      <div class="stat-title">🚨 起始日後 第1-2週</div>
+      <div class="stat-status status-warn" id="text-w12">載入中...</div>
+    </div>
+    <div class="stat-box" id="stat-w34">
+      <div class="stat-title">🚨 起始日後 第3-4週</div>
+      <div class="stat-status status-warn" id="text-w34">載入中...</div>
+    </div>
+    <div class="stat-box" id="stat-total">
+      <div class="stat-title">✅ 四週總休假數 (應休8天)</div>
+      <div class="stat-status status-warn" id="text-total">載入中...</div>
+    </div>
+  </div>
+
+  <div class="calendar-container" id="yearContainer">
+    <h3 style="text-align:center; width: 100%; color:#7f8c8d;">⏳ 正在從雲端讀取您的班表，請稍候...</h3>
   </div>
 
   <script>
+    // ！！！記得換成你最新的 GAS_URL ！！！
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
+
+    const currentYear = 2026;
+    let cloudScheduleMap = {}; // 用來存放從 Google Sheet 抓下來的舊資料
+
     const types = ["上班", "例假", "休息日", "特休/補休"];
-    const typeClasses = {
-      "上班": "type-work",
-      "例假": "type-regular",
-      "休息日": "type-rest",
-      "特休/補休": "type-leave"
-    };
-    const typeIcons = {
-      "上班": "💼 上班",
-      "例假": "🛑 例假",
-      "休息日": "🍵 休息日",
-      "特休/補休": "🏖️ 特休/補休"
-    };
+    const typeClasses = { "上班": "type-work", "例假": "type-regular", "休息日": "type-rest", "特休/補休": "type-leave" };
+    const typeIcons = { "上班": "💼", "例假": "🛑", "休息日": "🍵", "特休/補休": "🏖️" };
 
     window.onload = function() {
+      // 設定預設防呆日為最近的星期一
       const today = new Date();
       const day = today.getDay();
       const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-      const startMonday = new Date(today.setDate(diff));
-      
-      document.getElementById('cycleStartDate').value = startMonday.toISOString().split('T')[0];
-      generateGrid();
+      document.getElementById('cycleStartDate').value = new Date(today.setDate(diff)).toISOString().split('T')[0];
+
+      // 從雲端抓取舊排班資料
+      fetch(GAS_URL)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success' && data.scheduleMap) {
+            cloudScheduleMap = data.scheduleMap;
+          }
+          generateYearlyCalendar(currentYear);
+        })
+        .catch(error => {
+          console.error("讀取班表失敗，使用預設值:", error);
+          generateYearlyCalendar(currentYear); // 就算失敗也畫出預設日曆讓你排
+        });
     };
 
-    function generateGrid() {
-      const grid = document.getElementById('calendarGrid');
-      grid.innerHTML = ''; 
+    // 🌟 核心：畫出 12 個月的日曆
+    function generateYearlyCalendar(year) {
+      const container = document.getElementById('yearContainer');
+      container.innerHTML = ''; 
       
-      const days = ['一', '二', '三', '四', '五', '六', '日'];
-      days.forEach(d => {
-        const div = document.createElement('div');
-        div.className = 'day-header';
-        div.innerText = `星期${d}`;
-        grid.appendChild(div);
-      });
+      const daysHeader = ['日', '一', '二', '三', '四', '五', '六'];
 
-      const startDateStr = document.getElementById('cycleStartDate').value;
-      if (!startDateStr) return;
-      
-      let currentDate = new Date(startDateStr);
+      for (let month = 0; month < 12; month++) {
+        const monthCard = document.createElement('div');
+        monthCard.className = 'month-card';
+        monthCard.innerHTML = `<h3>${year} 年 ${month + 1} 月</h3>`;
+        
+        const grid = document.createElement('div');
+        grid.className = 'month-grid';
 
-      for (let i = 0; i < 28; i++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.index = i; 
-        
-        cell.ondragover = allowDrop;
-        cell.ondragenter = dragEnter;
-        cell.ondragleave = dragLeave;
-        cell.ondrop = drop;
+        // 畫出星期一到日表頭
+        daysHeader.forEach((d, index) => {
+          let el = document.createElement('div');
+          el.className = 'day-header' + (index === 0 || index === 6 ? ' weekend' : '');
+          el.innerText = d;
+          grid.appendChild(el);
+        });
 
-        const dateStr = (currentDate.getMonth() + 1) + '/' + currentDate.getDate();
-        const dateDiv = document.createElement('div');
-        dateDiv.className = 'cell-date';
-        dateDiv.innerText = `Day ${i+1} (${dateStr})`;
-        
-        // 🌟 智慧判斷：週六預設「休息日」，週日預設「例假」，平日預設「上班」
-        let defaultType = "上班";
-        let dayOfWeek = currentDate.getDay(); // 0 是週日, 6 是週六
-        
-        if (dayOfWeek === 6) {
-          defaultType = "休息日";
-        } else if (dayOfWeek === 0) {
-          defaultType = "例假";
+        // 算出這個月第一天是星期幾，補上空白格子
+        let firstDay = new Date(year, month, 1).getDay();
+        for (let i = 0; i < firstDay; i++) {
+          grid.appendChild(document.createElement('div'));
         }
 
-        const blockDiv = document.createElement('div');
-        blockDiv.className = `block ${typeClasses[defaultType]}`;
-        blockDiv.dataset.type = defaultType;
-        blockDiv.innerText = typeIcons[defaultType];
-        
-        blockDiv.onclick = function() { toggleType(this); };
+        // 畫出這個月的每一天
+        let daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let d = 1; d <= daysInMonth; d++) {
+          let dateObj = new Date(year, month, d);
+          // 產生 YYYY-MM-DD 字串當作 ID
+          let dateStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(d).padStart(2, '0');
+          let dayOfWeek = dateObj.getDay();
 
-        cell.appendChild(dateDiv);
-        cell.appendChild(blockDiv);
-        grid.appendChild(cell);
+          let cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.id = "cell-" + dateStr; 
+          cell.dataset.date = dateStr;
+          
+          cell.ondragover = allowDrop;
+          cell.ondragenter = dragEnter;
+          cell.ondragleave = dragLeave;
+          cell.ondrop = drop;
 
-        currentDate.setDate(currentDate.getDate() + 1); 
+          let dateDiv = document.createElement('div');
+          dateDiv.className = 'cell-date';
+          dateDiv.innerText = d; // 只顯示號碼
+          
+          // 🌟 判斷這天的假別 (優先抓雲端舊資料，沒有舊資料才用預設的)
+          let defaultType = "上班";
+          if (dayOfWeek === 6) defaultType = "休息日";
+          if (dayOfWeek === 0) defaultType = "例假";
+
+          // 如果雲端有資料，就覆蓋預設值
+          let finalType = cloudScheduleMap[dateStr] || defaultType;
+
+          let blockDiv = document.createElement('div');
+          blockDiv.className = `block ${typeClasses[finalType]}`;
+          blockDiv.dataset.type = finalType;
+          blockDiv.innerText = typeIcons[finalType] + " " + finalType;
+          
+          blockDiv.onclick = function() { toggleType(this); };
+
+          cell.appendChild(dateDiv);
+          cell.appendChild(blockDiv);
+          grid.appendChild(cell);
+        }
+        monthCard.appendChild(grid);
+        container.appendChild(monthCard);
       }
-      
-      checkRules(); 
+      checkRules(); // 畫完後執行一次防呆檢查
     }
 
+    // 點擊切換假別
     function toggleType(element) {
       let currentType = element.dataset.type;
-      let nextIndex = (types.indexOf(currentType) + 1) % types.length;
-      let nextType = types[nextIndex];
-
+      let nextType = types[(types.indexOf(currentType) + 1) % types.length];
       element.dataset.type = nextType;
       element.className = `block ${typeClasses[nextType]}`;
-      element.innerText = typeIcons[nextType];
-      
+      element.innerText = typeIcons[nextType] + " " + nextType;
       checkRules(); 
     }
 
-    function drag(ev) {
-      ev.dataTransfer.setData("type", ev.target.dataset.type);
-    }
-
-    function allowDrop(ev) {
-      ev.preventDefault();
-    }
-
-    function dragEnter(ev) {
-      ev.preventDefault();
-      let target = ev.target.closest('.cell');
-      if(target) target.classList.add('drag-over');
-    }
-
-    function dragLeave(ev) {
-      let target = ev.target.closest('.cell');
-      if(target) target.classList.remove('drag-over');
-    }
-
+    // 拖曳相關邏輯
+    function drag(ev) { ev.dataTransfer.setData("type", ev.target.dataset.type); }
+    function allowDrop(ev) { ev.preventDefault(); }
+    function dragEnter(ev) { ev.preventDefault(); ev.target.closest('.cell')?.classList.add('drag-over'); }
+    function dragLeave(ev) { ev.target.closest('.cell')?.classList.remove('drag-over'); }
     function drop(ev) {
       ev.preventDefault();
       let target = ev.target.closest('.cell');
       if(target) {
         target.classList.remove('drag-over');
         let draggedType = ev.dataTransfer.getData("type");
-        
         let block = target.querySelector('.block');
         block.dataset.type = draggedType;
         block.className = `block ${typeClasses[draggedType]}`;
-        block.innerText = typeIcons[draggedType];
-        
+        block.innerText = typeIcons[draggedType] + " " + draggedType;
         checkRules(); 
       }
     }
 
+    // 🌟 28天防呆檢查邏輯 (抓取起始日往後的 28 天 DOM 元素)
     function checkRules() {
+      const startDateStr = document.getElementById('cycleStartDate').value;
+      if(!startDateStr) return;
+      
+      let checkDate = new Date(startDateStr);
       let schedule = [];
-      document.querySelectorAll('.cell .block').forEach(b => {
-        schedule.push(b.dataset.type);
-      });
 
-      if(schedule.length < 28) return;
+      for(let i = 0; i < 28; i++) {
+        let dateStr = checkDate.getFullYear() + "-" + String(checkDate.getMonth()+1).padStart(2,'0') + "-" + String(checkDate.getDate()).padStart(2,'0');
+        let cell = document.getElementById("cell-" + dateStr);
+        if(cell) {
+           let type = cell.querySelector('.block').dataset.type;
+           schedule.push(type);
+        }
+        checkDate.setDate(checkDate.getDate() + 1);
+      }
 
-      let w12_regular = 0; 
-      let w34_regular = 0; 
-      let total_regular = 0; 
-      let total_rest = 0;    
-
+      let w12_reg = 0, w34_reg = 0, total_reg = 0, total_rest = 0;
       schedule.forEach((type, index) => {
-        if (type === "例假") {
-          total_regular++;
-          if (index < 14) w12_regular++;
-          else w34_regular++;
-        }
-        if (type === "休息日") {
-          total_rest++;
-        }
+        if (type === "例假") { total_reg++; if(index < 14) w12_reg++; else w34_reg++; }
+        if (type === "休息日") total_rest++;
       });
+      let total_off = total_reg + total_rest;
 
-      let total_off = total_regular + total_rest; 
-
-      const statW12 = document.getElementById('stat-w12');
-      const textW12 = document.getElementById('text-w12');
-      if (w12_regular >= 2) {
-        statW12.style.borderLeftColor = "#27ae60";
-        textW12.className = "stat-status status-ok";
-        textW12.innerText = `✅ 已排 ${w12_regular} 天例假`;
-      } else {
-        statW12.style.borderLeftColor = "#e74c3c";
-        textW12.className = "stat-status status-warn";
-        textW12.innerText = `❌ 還缺 ${2 - w12_regular} 天例假`;
+      const updateStat = (id, count, target) => {
+        let el = document.getElementById(`stat-${id}`);
+        let text = document.getElementById(`text-${id}`);
+        if(count >= target) {
+          el.style.borderLeftColor = "#27ae60"; text.className = "stat-status status-ok"; text.innerText = `✅ 已排 ${count} 天`;
+        } else {
+          el.style.borderLeftColor = "#e74c3c"; text.className = "stat-status status-warn"; text.innerText = `❌ 還缺 ${target - count} 天`;
+        }
       }
+      updateStat('w12', w12_reg, 2);
+      updateStat('w34', w34_reg, 2);
 
-      const statW34 = document.getElementById('stat-w34');
-      const textW34 = document.getElementById('text-w34');
-      if (w34_regular >= 2) {
-        statW34.style.borderLeftColor = "#27ae60";
-        textW34.className = "stat-status status-ok";
-        textW34.innerText = `✅ 已排 ${w34_regular} 天例假`;
-      } else {
-        statW34.style.borderLeftColor = "#e74c3c";
-        textW34.className = "stat-status status-warn";
-        textW34.innerText = `❌ 還缺 ${2 - w34_regular} 天例假`;
-      }
-
-      const statTotal = document.getElementById('stat-total');
-      const textTotal = document.getElementById('text-total');
+      let elTotal = document.getElementById('stat-total'), txtTotal = document.getElementById('text-total');
       if (total_off === 8) {
-        statTotal.style.borderLeftColor = "#27ae60";
-        textTotal.className = "stat-status status-ok";
-        textTotal.innerText = `✅ 完美！剛好排滿 8 天休假`;
-      } else if (total_off < 8) {
-        statTotal.style.borderLeftColor = "#f1c40f";
-        textTotal.className = "stat-status status-warn";
-        textTotal.innerText = `⚠️ 目前休 ${total_off} 天 (還差 ${8 - total_off} 天)`;
+        elTotal.style.borderLeftColor = "#27ae60"; txtTotal.className = "stat-status status-ok"; txtTotal.innerText = `✅ 剛好休 8 天`;
       } else {
-        statTotal.style.borderLeftColor = "#e74c3c";
-        textTotal.className = "stat-status status-warn";
-        textTotal.innerText = `❌ 排太多了！目前休 ${total_off} 天 (超休 ${total_off - 8} 天)`;
+        elTotal.style.borderLeftColor = "#f1c40f"; txtTotal.className = "stat-status status-warn"; txtTotal.innerText = `⚠️ 目前休 ${total_off} 天`;
       }
     }
 
+    // 🌟 儲存班表回 Google Sheet
     function saveSchedule() {
-      alert("太棒了！你的前端排班系統已經完成了！\n未來我們可以在 Google Sheet 新增一個【個人排班】的資料表，就能把這個班表存進雲端囉！");
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.innerText = "⏳ 儲存中...";
+      saveBtn.disabled = true;
+
+      // 把整年的格子資料掃描一遍打包
+      let scheduleDataToSave = {};
+      document.querySelectorAll('.cell').forEach(cell => {
+         let dateStr = cell.dataset.date;
+         let type = cell.querySelector('.block').dataset.type;
+         scheduleDataToSave[dateStr] = type;
+      });
+
+      fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "save_schedule", scheduleData: scheduleDataToSave })
+      })
+      .then(r => r.json())
+      .then(data => {
+         if(data.status === 'success') {
+           alert("✅ 班表已成功覆蓋並儲存至雲端！");
+         } else alert("❌ 儲存失敗: " + data.message);
+      })
+      .catch(e => alert("❌ 連線錯誤: " + e))
+      .finally(() => {
+         saveBtn.innerText = "☁️ 儲存班表";
+         saveBtn.disabled = false;
+      });
     }
   </script>
 </body>
