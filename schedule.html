@@ -22,10 +22,10 @@
     .status-ok { color: #27ae60; }
     .status-warn { color: #e74c3c; }
 
-    /* 控制列 (選擇年份與週期) */
+    /* 控制列 */
     .control-bar { max-width: 1200px; margin: 0 auto 20px auto; padding: 15px 20px; background: #fff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
     
-    /* 左側調色盤 (改為橫向浮動在上方) */
+    /* 左側調色盤 */
     .palette { display: flex; gap: 10px; flex-wrap: wrap;}
     .block { padding: 8px 12px; border-radius: 6px; font-weight: bold; text-align: center; cursor: grab; color: white; user-select: none; box-shadow: 0 2px 4px rgba(0,0,0,0.15); font-size: 0.9em;}
     .block:active { cursor: grabbing; transform: scale(0.95); }
@@ -34,6 +34,8 @@
     .type-regular { background-color: #e74c3c; }    
     .type-rest { background-color: #2ecc71; }       
     .type-leave { background-color: #f1c40f; color: #333; } 
+    /* 🌟 新增：國定假日的紫色方塊 */
+    .type-national { background-color: #9b59b6; } 
 
     /* 12個月的日曆排版 */
     .calendar-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 0 20px 40px 20px;}
@@ -42,13 +44,13 @@
     
     .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .day-header { text-align: center; font-weight: bold; color: #7f8c8d; padding: 5px 0; font-size: 0.8em;}
-    .day-header.weekend { color: #e74c3c; } /* 日曆標題的六日顯示紅色 */
+    .day-header.weekend { color: #e74c3c; }
 
     .cell { border: 1px dashed #bdc3c7; border-radius: 4px; height: 65px; display: flex; flex-direction: column; padding: 2px; transition: background-color 0.2s;}
     .cell.drag-over { background-color: #f0f7fb; border-color: #3498db; }
     .cell-date { font-size: 0.7em; color: #95a5a6; text-align: right; font-weight: bold; margin-bottom: 2px;}
     
-    .cell .block { margin-bottom: 0; padding: 4px 2px; font-size: 0.75em; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center;}
+    .cell .block { margin-bottom: 0; padding: 4px 2px; font-size: 0.75em; cursor: pointer; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.2;}
 
     .save-btn { padding: 10px 20px; background-color: #e67e22; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1.1em;}
     .save-btn:hover { background-color: #d35400; }
@@ -77,6 +79,7 @@
       <div class="block type-regular" draggable="true" ondragstart="drag(event)" data-type="例假">🛑 例假</div>
       <div class="block type-rest" draggable="true" ondragstart="drag(event)" data-type="休息日">🍵 休息日</div>
       <div class="block type-leave" draggable="true" ondragstart="drag(event)" data-type="特休/補休">🏖️ 特/補休</div>
+      <div class="block type-national" draggable="true" ondragstart="drag(event)" data-type="國定假日">🎌 國定假日</div>
     </div>
     
     <div style="display:flex; align-items:center; gap:15px;">
@@ -108,23 +111,34 @@
 
   <script>
     // ！！！記得換成你最新的 GAS_URL ！！！
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwve2zEDHEeaMmQnLtqUBZJJJ2EVVjNTbjmqXs20SAL327F56vCZyuFZD08NreWX76caA/exec';
+    const GAS_URL = '你的_WEB_APP_URL_貼在這裡';
 
     const currentYear = 2026;
-    let cloudScheduleMap = {}; // 用來存放從 Google Sheet 抓下來的舊資料
+    let cloudScheduleMap = {}; 
 
-    const types = ["上班", "例假", "休息日", "特休/補休"];
-    const typeClasses = { "上班": "type-work", "例假": "type-regular", "休息日": "type-rest", "特休/補休": "type-leave" };
-    const typeIcons = { "上班": "💼", "例假": "🛑", "休息日": "🍵", "特休/補休": "🏖️" };
+    // 🌟 將「國定假日」加入系統陣列中
+    const types = ["上班", "例假", "休息日", "特休/補休", "國定假日"];
+    const typeClasses = { 
+      "上班": "type-work", 
+      "例假": "type-regular", 
+      "休息日": "type-rest", 
+      "特休/補休": "type-leave",
+      "國定假日": "type-national" // 🌟 對應新加的紫色 CSS
+    };
+    const typeIcons = { 
+      "上班": "💼", 
+      "例假": "🛑", 
+      "休息日": "🍵", 
+      "特休/補休": "🏖️",
+      "國定假日": "🎌" // 🌟 給國定假日一個小國旗圖示
+    };
 
     window.onload = function() {
-      // 設定預設防呆日為最近的星期一
       const today = new Date();
       const day = today.getDay();
       const diff = today.getDate() - day + (day === 0 ? -6 : 1);
       document.getElementById('cycleStartDate').value = new Date(today.setDate(diff)).toISOString().split('T')[0];
 
-      // 從雲端抓取舊排班資料
       fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
@@ -135,11 +149,10 @@
         })
         .catch(error => {
           console.error("讀取班表失敗，使用預設值:", error);
-          generateYearlyCalendar(currentYear); // 就算失敗也畫出預設日曆讓你排
+          generateYearlyCalendar(currentYear); 
         });
     };
 
-    // 🌟 核心：畫出 12 個月的日曆
     function generateYearlyCalendar(year) {
       const container = document.getElementById('yearContainer');
       container.innerHTML = ''; 
@@ -154,7 +167,6 @@
         const grid = document.createElement('div');
         grid.className = 'month-grid';
 
-        // 畫出星期一到日表頭
         daysHeader.forEach((d, index) => {
           let el = document.createElement('div');
           el.className = 'day-header' + (index === 0 || index === 6 ? ' weekend' : '');
@@ -162,17 +174,14 @@
           grid.appendChild(el);
         });
 
-        // 算出這個月第一天是星期幾，補上空白格子
         let firstDay = new Date(year, month, 1).getDay();
         for (let i = 0; i < firstDay; i++) {
           grid.appendChild(document.createElement('div'));
         }
 
-        // 畫出這個月的每一天
         let daysInMonth = new Date(year, month + 1, 0).getDate();
         for (let d = 1; d <= daysInMonth; d++) {
           let dateObj = new Date(year, month, d);
-          // 產生 YYYY-MM-DD 字串當作 ID
           let dateStr = year + "-" + String(month + 1).padStart(2, '0') + "-" + String(d).padStart(2, '0');
           let dayOfWeek = dateObj.getDay();
 
@@ -188,14 +197,12 @@
 
           let dateDiv = document.createElement('div');
           dateDiv.className = 'cell-date';
-          dateDiv.innerText = d; // 只顯示號碼
+          dateDiv.innerText = d; 
           
-          // 🌟 判斷這天的假別 (優先抓雲端舊資料，沒有舊資料才用預設的)
           let defaultType = "上班";
           if (dayOfWeek === 6) defaultType = "休息日";
           if (dayOfWeek === 0) defaultType = "例假";
 
-          // 如果雲端有資料，就覆蓋預設值
           let finalType = cloudScheduleMap[dateStr] || defaultType;
 
           let blockDiv = document.createElement('div');
@@ -212,10 +219,9 @@
         monthCard.appendChild(grid);
         container.appendChild(monthCard);
       }
-      checkRules(); // 畫完後執行一次防呆檢查
+      checkRules(); 
     }
 
-    // 點擊切換假別
     function toggleType(element) {
       let currentType = element.dataset.type;
       let nextType = types[(types.indexOf(currentType) + 1) % types.length];
@@ -225,7 +231,6 @@
       checkRules(); 
     }
 
-    // 拖曳相關邏輯
     function drag(ev) { ev.dataTransfer.setData("type", ev.target.dataset.type); }
     function allowDrop(ev) { ev.preventDefault(); }
     function dragEnter(ev) { ev.preventDefault(); ev.target.closest('.cell')?.classList.add('drag-over'); }
@@ -244,7 +249,7 @@
       }
     }
 
-    // 🌟 28天防呆檢查邏輯 (抓取起始日往後的 28 天 DOM 元素)
+    // 防呆檢查邏輯
     function checkRules() {
       const startDateStr = document.getElementById('cycleStartDate').value;
       if(!startDateStr) return;
@@ -284,18 +289,19 @@
       let elTotal = document.getElementById('stat-total'), txtTotal = document.getElementById('text-total');
       if (total_off === 8) {
         elTotal.style.borderLeftColor = "#27ae60"; txtTotal.className = "stat-status status-ok"; txtTotal.innerText = `✅ 剛好休 8 天`;
+      } else if (total_off > 8) {
+        // 🌟 防呆重點提醒：因為加入了國定假日，如果休超過 8 天也不一定違法！
+        elTotal.style.borderLeftColor = "#f1c40f"; txtTotal.className = "stat-status status-ok"; txtTotal.innerText = `ℹ️ 休了 ${total_off} 天 (超過基本8天)`;
       } else {
-        elTotal.style.borderLeftColor = "#f1c40f"; txtTotal.className = "stat-status status-warn"; txtTotal.innerText = `⚠️ 目前休 ${total_off} 天`;
+        elTotal.style.borderLeftColor = "#e74c3c"; txtTotal.className = "stat-status status-warn"; txtTotal.innerText = `❌ 違法！目前僅休 ${total_off} 天`;
       }
     }
 
-    // 🌟 儲存班表回 Google Sheet
     function saveSchedule() {
       const saveBtn = document.getElementById('saveBtn');
       saveBtn.innerText = "⏳ 儲存中...";
       saveBtn.disabled = true;
 
-      // 把整年的格子資料掃描一遍打包
       let scheduleDataToSave = {};
       document.querySelectorAll('.cell').forEach(cell => {
          let dateStr = cell.dataset.date;
