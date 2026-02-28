@@ -10,24 +10,31 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
     .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
     
-    .dashboard { max-width: 800px; margin: 30px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
+    /* 🌟 新增：頂部導覽列樣式 (讓首頁與其他頁面統一) */
+    .nav-bar { padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 10px;}
+    .nav-btn { display: inline-block; margin: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
+    .nav-btn:hover { background-color: #bdc3c7; }
+    .nav-active { background-color: #2ecc71; color: white; }
+
+    /* 狀態看板設計 */
+    .dashboard { max-width: 900px; margin: 20px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
     .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; text-align: center; border-top: 4px solid #3498db; }
     .stat-box.warning { border-top-color: #e74c3c; } 
     .stat-title { font-size: 0.9em; color: #7f8c8d; margin-bottom: 5px; font-weight: bold;}
     .stat-number { font-size: 1.5em; color: #2c3e50; font-weight: bold; }
     .stat-detail { font-size: 0.8em; color: #95a5a6; margin-top: 5px; }
-    
     .clickable-box { cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
     .clickable-box:hover { background-color: #f0f7fb; transform: scale(1.02); }
 
-    .container { max-width: 800px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 20px; }
+    /* 下方功能卡片設計 */
+    .container { max-width: 900px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 0 20px; }
     .card { background: white; padding: 25px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; transition: transform 0.2s; }
     .card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
     .card h3 { color: #2980b9; margin-bottom: 10px; font-size: 1.1em;}
     .card p { font-size: 0.85em; color: #666; }
     .icon { font-size: 35px; margin-bottom: 10px; }
 
-    /* 彈出視窗樣式 */
+    /* 彈出視窗 (Modal) 樣式 */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
     .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 10px; width: 85%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 75vh; overflow-y: auto; position: relative;}
     .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
@@ -39,23 +46,25 @@
     .case-name { font-size: 1em; color: #333; }
     .missing-tag { background-color: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 10px; font-weight: bold;}
 
-    /* 🌟 新增：專屬首頁數字的呼吸燈特效 */
-    @keyframes pulse {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.98); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-    .loading-blink {
-      animation: pulse 1.5s infinite;
-      color: #e67e22 !important; /* 讀取時變成溫暖的橘色 */
-    }
+    /* 數字讀取中的呼吸燈特效 */
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
+    .loading-blink { animation: pulse 1.5s infinite; color: #e67e22 !important; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>📝 璞育塾 - 社工個案管理系統</h1>
-    <p>輕鬆建檔、快速紀錄、自動生成報表</p>
+    <h1 style="margin:0;">📝 璞育塾 - 社工個案管理系統</h1>
+    <p style="margin:5px 0 0 0; font-size:0.9em;">輕鬆建檔、快速紀錄、自動生成報表</p>
+  </div>
+
+  <div class="nav-bar">
+    <a href="index.html" class="nav-btn nav-active">🏠 首頁</a>
+    <a href="intake.html" class="nav-btn">1. 接案</a>
+    <a href="interview.html" class="nav-btn">2. 初訪</a>
+    <a href="family.html" class="nav-btn">3. 家庭資料</a>
+    <a href="record.html" class="nav-btn">4. 每月紀錄</a>
+    <a href="schedule.html" class="nav-btn">5. 差勤排班</a>
   </div>
 
   <div class="dashboard">
@@ -74,7 +83,7 @@
     <div class="stat-box warning clickable-box" onclick="openModal('record', '📝 紀錄待補交名單 (含本月與上月)')">
       <div class="stat-title">📝 紀錄待補交 <span style="font-size: 0.8em; color:#e74c3c;">(👆看名單)</span></div>
       <div class="stat-number" style="color: #e74c3c;" id="pendingRecords">-- 筆未寫</div>
-      <div class="stat-detail">本月或上月尚有紀錄未完成</div>
+      <div class="stat-detail">尚未完成之每月紀錄</div>
     </div>
   </div>
 
@@ -82,26 +91,31 @@
     <a href="intake.html" class="card">
       <div class="icon">🆕</div>
       <h3>1. 新案建檔 (接案)</h3>
-      <p>新增接案摘要，初步評估是否進行初訪與開案。</p>
+      <p>新增接案摘要，並初步評估是否進行後續初訪與開案。</p>
     </a>
     <a href="interview.html" class="card">
       <div class="icon">🏡</div>
       <h3>2. 填寫初訪紀錄</h3>
-      <p>針對需初訪個案，填寫家戶狀況並自動生成紀錄表。</p>
+      <p>針對需初訪之個案，填寫詳細家戶狀況並自動生成 Word 檔。</p>
     </a>
     <a href="family.html" class="card">
       <div class="icon">📋</div>
-      <h3>3. 家庭資料表</h3>
-      <p>自動帶入已知資料，建立/更新一戶一份的家庭總表。</p>
+      <h3>3. 建立家庭資料表</h3>
+      <p>自動帶入已知資料，建立或更新一戶一份的家庭總表。</p>
     </a>
     <a href="record.html" class="card">
       <div class="icon">📅</div>
       <h3>4. 每月個案紀錄</h3>
-      <p>填寫每月關懷、發放物資等例行與非例行服務。</p>
+      <p>填寫每月關懷、發放物資或獎助學金等例行與非例行服務。</p>
+    </a>
+    <a href="schedule.html" class="card">
+      <div class="icon">⏰</div>
+      <h3>5. 個人差勤與排班</h3>
+      <p>管理個人班表，雲端存檔並自動檢核「四週變形工時」法規。</p>
     </a>
     <a href="#" class="card" onclick="alert('功能開發中！這裡將顯示您的服務量統計。')">
       <div class="icon">📊</div>
-      <h3>5. 服務量統計分析</h3>
+      <h3>6. 服務量統計分析</h3>
       <p>查看每月服務總量、特殊議題分佈與各類服務數據。</p>
     </a>
   </div>
@@ -131,7 +145,6 @@
       const interviewEl = document.getElementById('pendingInterviews');
       const recordEl = document.getElementById('pendingRecords');
 
-      // 🌟 網頁一打開，立刻加上閃爍特效，並換成橘色文字
       activeEl.classList.add('loading-blink');
       interviewEl.classList.add('loading-blink');
       recordEl.classList.add('loading-blink');
@@ -143,13 +156,11 @@
       fetch(GAS_URL)
         .then(response => response.json())
         .then(data => {
-          // 🌟 讀取成功後，立刻移除閃爍特效
           activeEl.classList.remove('loading-blink');
           interviewEl.classList.remove('loading-blink');
           recordEl.classList.remove('loading-blink');
 
           if (data.status === 'success') {
-            // 讓原來的字體顏色回來
             activeEl.style.color = "#2c3e50"; 
             interviewEl.style.color = "#e74c3c";
             recordEl.style.color = "#e74c3c";
@@ -169,7 +180,6 @@
         })
         .catch(error => {
           console.error("連線錯誤:", error);
-          // 🌟 發生錯誤也移除閃爍特效
           activeEl.classList.remove('loading-blink');
           interviewEl.classList.remove('loading-blink');
           recordEl.classList.remove('loading-blink');
