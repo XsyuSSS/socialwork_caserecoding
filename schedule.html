@@ -7,23 +7,28 @@
   <link rel="icon" type="image/jpeg" href="photo.jpg">
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
-    .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100;}
     
-    .nav-bar { padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 20px;}
+    /* 🌟 移除了 header 的 sticky，把螢幕空間留給控制列 */
+    .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+    
+    .nav-bar { padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 5px;}
     .nav-btn { display: inline-block; margin: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
 
-    /* 儀表板 */
-    .dashboard { max-width: 1200px; margin: 0 auto 20px auto; display: flex; gap: 15px; padding: 0 20px; flex-wrap: wrap;}
-    .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; border-left: 5px solid #ccc;}
-    .stat-title { font-size: 0.9em; color: #7f8c8d; font-weight: bold; margin-bottom: 8px;}
-    .stat-status { font-size: 1.2em; font-weight: bold;}
-    .status-ok { color: #27ae60; }
-    .status-warn { color: #e74c3c; }
+    /* 🌟 核心魔法：凍結窗格專用容器 */
+    .sticky-wrapper {
+      position: sticky;
+      top: 0; /* 吸附在螢幕最頂端 */
+      z-index: 999; /* 確保它永遠在最上層 */
+      background-color: #f4f7f6; /* 與網頁背景同色，這樣日曆滑過去兩側才不會穿幫 */
+      padding: 15px 0 5px 0;
+      /* 往下捲動時會有一條淡淡的陰影，區分上下層 */
+      box-shadow: 0 10px 10px -10px rgba(0,0,0,0.15); 
+    }
 
     /* 控制列 */
-    .control-bar { max-width: 1200px; margin: 0 auto 20px auto; padding: 15px 20px; background: #fff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .control-bar { max-width: 1200px; margin: 0 auto 15px auto; padding: 15px 20px; background: #fff; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
     
     /* 左側調色盤 */
     .palette { display: flex; gap: 10px; flex-wrap: wrap;}
@@ -34,11 +39,18 @@
     .type-regular { background-color: #e74c3c; }    
     .type-rest { background-color: #2ecc71; }       
     .type-leave { background-color: #f1c40f; color: #333; } 
-    /* 🌟 新增：國定假日的紫色方塊 */
     .type-national { background-color: #9b59b6; } 
 
+    /* 儀表板 */
+    .dashboard { max-width: 1200px; margin: 0 auto 10px auto; display: flex; gap: 15px; padding: 0 20px; flex-wrap: wrap;}
+    .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; border-left: 5px solid #ccc;}
+    .stat-title { font-size: 0.9em; color: #7f8c8d; font-weight: bold; margin-bottom: 8px;}
+    .stat-status { font-size: 1.2em; font-weight: bold;}
+    .status-ok { color: #27ae60; }
+    .status-warn { color: #e74c3c; }
+
     /* 12個月的日曆排版 */
-    .calendar-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 0 20px 40px 20px;}
+    .calendar-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; padding: 10px 20px 40px 20px;}
     .month-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .month-card h3 { text-align: center; color: #2c3e50; margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #ecf0f1;}
     
@@ -63,50 +75,52 @@
     <p style="margin:5px 0 0 0; font-size:0.9em;">拖曳方塊排班，點擊【儲存】即可同步至雲端</p>
   </div>
 
-<div class="nav-bar">
+  <div class="nav-bar">
     <a href="index.html" class="nav-btn">🏠 首頁</a>
     <a href="intake.html" class="nav-btn">📝 1. 接案</a>
     <a href="interview.html" class="nav-btn">🏡 2. 初訪</a>
     <a href="family.html" class="nav-btn">📋 3. 家庭資料</a>
     <a href="record.html" class="nav-btn">📅 4. 每月紀錄</a>
-    <a href="schedule.html" class="nav-btn">⏰ 5. 差勤排班</a>
+    <a href="schedule.html" class="nav-btn nav-active">⏰ 5. 差勤排班</a>
     <a href="stats.html" class="nav-btn">📊 6. 服務量統計</a>
-</div>
+  </div>
 
-  <div class="control-bar">
-    <div class="palette">
-      <div style="font-weight:bold; margin-right:10px; display:flex; align-items:center;">拖曳方塊：</div>
-      <div class="block type-work" draggable="true" ondragstart="drag(event)" data-type="上班">💼 上班</div>
-      <div class="block type-regular" draggable="true" ondragstart="drag(event)" data-type="例假">🛑 例假</div>
-      <div class="block type-rest" draggable="true" ondragstart="drag(event)" data-type="休息日">🍵 休息日</div>
-      <div class="block type-leave" draggable="true" ondragstart="drag(event)" data-type="特休/補休">🏖️ 特/補休</div>
-      <div class="block type-national" draggable="true" ondragstart="drag(event)" data-type="國定假日">🎌 國定假日</div>
-    </div>
+  <div class="sticky-wrapper">
     
-    <div style="display:flex; align-items:center; gap:15px;">
-      <div style="font-size:0.9em; font-weight:bold;">
-        防呆起始日: <input type="date" id="cycleStartDate" onchange="checkRules()" style="padding:4px;">
+    <div class="control-bar">
+      <div class="palette">
+        <div style="font-weight:bold; margin-right:10px; display:flex; align-items:center;">拖曳方塊：</div>
+        <div class="block type-work" draggable="true" ondragstart="drag(event)" data-type="上班">💼 上班</div>
+        <div class="block type-regular" draggable="true" ondragstart="drag(event)" data-type="例假">🛑 例假</div>
+        <div class="block type-rest" draggable="true" ondragstart="drag(event)" data-type="休息日">🍵 休息日</div>
+        <div class="block type-leave" draggable="true" ondragstart="drag(event)" data-type="特休/補休">🏖️ 特/補休</div>
+        <div class="block type-national" draggable="true" ondragstart="drag(event)" data-type="國定假日">🎌 國定假日</div>
       </div>
-      <button class="save-btn" id="saveBtn" onclick="saveSchedule()">☁️ 儲存班表</button>
+      
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div style="font-size:0.9em; font-weight:bold;">
+          防呆起始日: <input type="date" id="cycleStartDate" onchange="checkRules()" style="padding:4px;">
+        </div>
+        <button class="save-btn" id="saveBtn" onclick="saveSchedule()">☁️ 儲存班表</button>
+      </div>
     </div>
-  </div>
 
-  <div class="dashboard">
-    <div class="stat-box" id="stat-w12">
-      <div class="stat-title">🚨 起始日後 第1-2週</div>
-      <div class="stat-status status-warn" id="text-w12">載入中...</div>
+    <div class="dashboard">
+      <div class="stat-box" id="stat-w12">
+        <div class="stat-title">🚨 起始日後 第1-2週</div>
+        <div class="stat-status status-warn" id="text-w12">載入中...</div>
+      </div>
+      <div class="stat-box" id="stat-w34">
+        <div class="stat-title">🚨 起始日後 第3-4週</div>
+        <div class="stat-status status-warn" id="text-w34">載入中...</div>
+      </div>
+      <div class="stat-box" id="stat-total">
+        <div class="stat-title">✅ 四週總休假數 (應休8天)</div>
+        <div class="stat-status status-warn" id="text-total">載入中...</div>
+      </div>
     </div>
-    <div class="stat-box" id="stat-w34">
-      <div class="stat-title">🚨 起始日後 第3-4週</div>
-      <div class="stat-status status-warn" id="text-w34">載入中...</div>
-    </div>
-    <div class="stat-box" id="stat-total">
-      <div class="stat-title">✅ 四週總休假數 (應休8天)</div>
-      <div class="stat-status status-warn" id="text-total">載入中...</div>
-    </div>
-  </div>
 
-  <div class="calendar-container" id="yearContainer">
+  </div> <div class="calendar-container" id="yearContainer">
     <h3 style="text-align:center; width: 100%; color:#7f8c8d;">⏳ 正在從雲端讀取您的班表，請稍候...</h3>
   </div>
 
@@ -117,21 +131,20 @@
     const currentYear = 2026;
     let cloudScheduleMap = {}; 
 
-    // 🌟 將「國定假日」加入系統陣列中
     const types = ["上班", "例假", "休息日", "特休/補休", "國定假日"];
     const typeClasses = { 
       "上班": "type-work", 
       "例假": "type-regular", 
       "休息日": "type-rest", 
       "特休/補休": "type-leave",
-      "國定假日": "type-national" // 🌟 對應新加的紫色 CSS
+      "國定假日": "type-national"
     };
     const typeIcons = { 
       "上班": "💼", 
       "例假": "🛑", 
       "休息日": "🍵", 
       "特休/補休": "🏖️",
-      "國定假日": "🎌" // 🌟 給國定假日一個小國旗圖示
+      "國定假日": "🎌" 
     };
 
     window.onload = function() {
@@ -250,7 +263,6 @@
       }
     }
 
-    // 防呆檢查邏輯
     function checkRules() {
       const startDateStr = document.getElementById('cycleStartDate').value;
       if(!startDateStr) return;
@@ -291,7 +303,6 @@
       if (total_off === 8) {
         elTotal.style.borderLeftColor = "#27ae60"; txtTotal.className = "stat-status status-ok"; txtTotal.innerText = `✅ 剛好休 8 天`;
       } else if (total_off > 8) {
-        // 🌟 防呆重點提醒：因為加入了國定假日，如果休超過 8 天也不一定違法！
         elTotal.style.borderLeftColor = "#f1c40f"; txtTotal.className = "stat-status status-ok"; txtTotal.innerText = `ℹ️ 休了 ${total_off} 天 (超過基本8天)`;
       } else {
         elTotal.style.borderLeftColor = "#e74c3c"; txtTotal.className = "stat-status status-warn"; txtTotal.innerText = `❌ 違法！目前僅休 ${total_off} 天`;
