@@ -10,13 +10,11 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
     .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
     
-    /* 🌟 新增：頂部導覽列樣式 (讓首頁與其他頁面統一) */
     .nav-bar { padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; margin-bottom: 10px;}
     .nav-btn { display: inline-block; margin: 5px; padding: 8px 12px; background-color: #ecf0f1; color: #2c3e50; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.2s; }
     .nav-btn:hover { background-color: #bdc3c7; }
     .nav-active { background-color: #2ecc71; color: white; }
 
-    /* 狀態看板設計 */
     .dashboard { max-width: 900px; margin: 20px auto 10px auto; display: flex; gap: 15px; padding: 0 20px; justify-content: space-between; flex-wrap: wrap;}
     .stat-box { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex: 1; min-width: 200px; text-align: center; border-top: 4px solid #3498db; }
     .stat-box.warning { border-top-color: #e74c3c; } 
@@ -26,7 +24,6 @@
     .clickable-box { cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
     .clickable-box:hover { background-color: #f0f7fb; transform: scale(1.02); }
 
-    /* 下方功能卡片設計 */
     .container { max-width: 900px; margin: 20px auto 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 0 20px; }
     .card { background: white; padding: 25px 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: #333; transition: transform 0.2s; }
     .card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
@@ -34,7 +31,6 @@
     .card p { font-size: 0.85em; color: #666; }
     .icon { font-size: 35px; margin-bottom: 10px; }
 
-    /* 彈出視窗 (Modal) 樣式 */
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
     .modal-content { background-color: #fff; margin: 8% auto; padding: 25px; border-radius: 10px; width: 85%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); max-height: 75vh; overflow-y: auto; position: relative;}
     .close-btn { color: #aaa; position: absolute; right: 20px; top: 15px; font-size: 28px; font-weight: bold; cursor: pointer; }
@@ -46,7 +42,6 @@
     .case-name { font-size: 1em; color: #333; }
     .missing-tag { background-color: #e74c3c; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; margin-right: 10px; font-weight: bold;}
 
-    /* 數字讀取中的呼吸燈特效 */
     @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.98); } 100% { opacity: 1; transform: scale(1); } }
     .loading-blink { animation: pulse 1.5s infinite; color: #e67e22 !important; }
   </style>
@@ -114,7 +109,7 @@
       <h3>5. 個人差勤與排班</h3>
       <p>管理個人班表，雲端存檔並自動檢核「四週變形工時」法規。</p>
     </a>
-    <a href="#" class="card" onclick="alert('功能開發中！這裡將顯示您的服務量統計。')">
+    <a href="stats.html" class="card">
       <div class="icon">📊</div>
       <h3>6. 服務量統計分析</h3>
       <p>查看每月服務總量、特殊議題分佈與各類服務數據。</p>
@@ -182,67 +177,4 @@
         .catch(error => {
           console.error("連線錯誤:", error);
           activeEl.classList.remove('loading-blink');
-          interviewEl.classList.remove('loading-blink');
-          recordEl.classList.remove('loading-blink');
-          
-          activeEl.innerText = "連線失敗";
-          interviewEl.innerText = "連線失敗";
-          recordEl.innerText = "連線失敗";
-        });
-    };
-
-    function openModal(listType, titleText) {
-      document.getElementById('caseModal').style.display = 'block';
-      document.getElementById('modalTitle').innerText = titleText;
-      renderModalContent(globalLists[listType]); 
-    }
-
-    function closeModal() {
-      document.getElementById('caseModal').style.display = 'none';
-    }
-
-    window.onclick = function(event) {
-      const modal = document.getElementById('caseModal');
-      if (event.target == modal) closeModal();
-    }
-
-    function renderModalContent(listToRender) {
-      const modalBody = document.getElementById('modalBody');
-      
-      if (listToRender.length === 0) {
-        modalBody.innerHTML = "<p style='color:#27ae60; font-weight:bold; font-size:1.1em; padding:20px; text-align:center;'>🎉 太棒了！這個項目目前全部都已完成！</p>";
-        return;
-      }
-
-      let houbi = [];
-      let liuying = [];
-      let others = [];
-
-      listToRender.forEach(c => {
-        const id = c.id ? c.id.toUpperCase().trim() : "";
-        if (id.startsWith('H')) { houbi.push(c); } 
-        else if (id.startsWith('L')) { liuying.push(c); } 
-        else { others.push(c); }
-      });
-
-      let htmlContent = "";
-      
-      const buildSection = (title, list) => {
-        if (list.length === 0) return "";
-        let sectionHtml = `<div class="region-title">${title} - ${list.length} 筆</div>`;
-        list.forEach(c => {
-          let missingTag = c.missing ? `<span class="missing-tag">${c.missing}未寫</span>` : "";
-          sectionHtml += `<div class="case-item">${missingTag}<span class="case-id">${c.id}</span> <span class="case-name">${c.name}</span></div>`;
-        });
-        return sectionHtml;
-      };
-
-      htmlContent += buildSection("🧸 後壁區 (H)", houbi);
-      htmlContent += buildSection("🪆 柳營區 (L)", liuying);
-      htmlContent += buildSection("🎁 其他區域", others);
-
-      modalBody.innerHTML = htmlContent;
-    }
-  </script>
-</body>
-</html>
+          interviewEl.classList.remove
